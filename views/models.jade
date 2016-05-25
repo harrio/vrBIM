@@ -1,0 +1,11 @@
+extends layout
+
+block content
+  a(href="/") Upload
+
+  select(id="modelselect", name="modelselect")
+    for item in models
+      option #{item}
+  button(onclick="selectModel()") Load
+
+  div(id="viewport")

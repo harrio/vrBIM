@@ -1,0 +1,10 @@
+extends layout
+
+block content
+  a(href="/models") Models
+
+  form(method="post",enctype="multipart/form-data",action="/upload")
+    p
+      input(type="file",name="upl")
+    p
+      input(type="submit")
