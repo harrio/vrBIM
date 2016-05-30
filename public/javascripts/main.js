@@ -96,16 +96,32 @@ function addBeacons() {
 }
 
 function addSkybox() {
-  var skyGeo = new THREE.SphereGeometry(100, 25, 25);
-  var material = new THREE.MeshPhongMaterial( {color: 0x00dfff} );
-  var sky = new THREE.Mesh(skyGeo, material);
-  sky.material.side = THREE.BackSide;
-  scene.add(sky);
+  var vertexShader = document.getElementById( 'vertexShader' ).textContent;
+	var fragmentShader = document.getElementById( 'fragmentShader' ).textContent;
+	var uniforms = {
+    topColor: 	 { type: "c", value: new THREE.Color( 0x0077ff ) },
+		bottomColor: { type: "c", value: new THREE.Color( 0xffffff ) },
+		offset:		 { type: "f", value: 33 },
+		exponent:	 { type: "f", value: 0.6 }
+	};
+	//uniforms.topColor.value.copy( hemiLight.color );
+	//scene.fog.color.copy( uniforms.bottomColor.value );
+
+  var skyGeo = new THREE.SphereGeometry( 4000, 32, 15 );
+  var skyMat = new THREE.ShaderMaterial( { vertexShader: vertexShader, fragmentShader: fragmentShader, uniforms: uniforms, side: THREE.BackSide } );
+  var sky = new THREE.Mesh( skyGeo, skyMat );
+  scene.add( sky );
+
+  // var skyGeo = new THREE.SphereGeometry(100, 25, 25);
+  // var material = new THREE.MeshPhongMaterial( {color: 0x00dfff} );
+  // var sky = new THREE.Mesh(skyGeo, material);
+  // sky.material.side = THREE.BackSide;
+  // scene.add(sky);
 }
 
 function addGround() {
   var geometry = new THREE.PlaneGeometry(100, 100);
-  var material = new THREE.MeshBasicMaterial( {color: 0x7cc00, side: THREE.DoubleSide} );
+  var material = new THREE.MeshBasicMaterial( {color: 0x7cc000, side: THREE.DoubleSide} );
   var plane = new THREE.Mesh( geometry, material );
   plane.rotation.x = Math.PI / 180 * 90;
   scene.add(plane);
