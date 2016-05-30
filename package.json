@@ -16,6 +16,7 @@
     "morgan": "~1.6.1",
     "multer": "^1.1.0",
     "serve-favicon": "~2.3.0",
-    "watchr": "^2.4.13"
+    "watchr": "^2.4.13",
+    "webvr-boilerplate": "^0.4.3"
   }
 }

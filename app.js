@@ -32,6 +32,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'node_modules')));
 app.use(express.static(path.join(__dirname, 'gltf')));
 
 app.use('/', routes);
@@ -145,7 +146,7 @@ watchr.watch({
 });
 
 app.listen(3000, () => {
-  console.log('Example app listening on port 3000!');
+  console.log('Example app listening on port 48200!');
 });
 
 module.exports = app;

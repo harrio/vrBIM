@@ -16,7 +16,7 @@ THREE.GLTFLoaderUtils = Object.create(Object, {
     _streams : { value:{}, writable: true },
 
     _streamsStatus: { value: {}, writable: true },
-    
+
     _resources: { value: {}, writable: true },
 
     _resourcesStatus: { value: {}, writable: true },
@@ -42,13 +42,14 @@ THREE.GLTFLoaderUtils = Object.create(Object, {
     _storeResource: {
         enumerable: false,
         value: function(resourceID, resource) {
+            // console.log('storing resource', resourceID)
             if (!resourceID) {
                 console.log("ERROR: entry does not contain id, cannot store");
                 return;
             }
 
-            if (this._containsResource[resourceID]) {
-                console.log("WARNING: resource:"+resourceID+" is already stored, overriding");
+            if (this._containsResource(resourceID)) {
+                // console.log("WARNING: resource:"+resourceID+" is already stored, overriding");
             }
 
            this._resources[resourceID] = resource;
@@ -115,6 +116,7 @@ THREE.GLTFLoaderUtils = Object.create(Object, {
             }
 
             var dataUriRegexResult = dataUriRegex.exec(path);
+            // console.log('resource available', path, dataUriRegexResult !== null)
             if (dataUriRegexResult !== null) {
                 delegate.streamAvailable(path, decodeDataUri(dataUriRegexResult, type));
                 return;
@@ -156,6 +158,7 @@ THREE.GLTFLoaderUtils = Object.create(Object, {
 
     _handleRequest: {
         value: function(request) {
+            // console.log('requesting', request.id)
             var resourceStatus = this._resourcesStatus[request.id];
             if (resourceStatus)
             {
@@ -165,23 +168,35 @@ THREE.GLTFLoaderUtils = Object.create(Object, {
             {
             	this._resourcesStatus[request.id] = 1;
             }
-            
+
             var streamStatus = this._streamsStatus[request.uri];
             if (streamStatus && streamStatus.status === "loading" )
             {
             	streamStatus.requests.push(request);
                 return;
             }
-            
+
+            if (this._streamsStatus[request.uri]) {
+                // console.log('already loading', request.uri)
+                debugger;
+            }
+
             this._streamsStatus[request.uri] = { status : "loading", requests : [request] };
-    		
+
             var self = this;
             var processResourceDelegate = {};
 
             processResourceDelegate.streamAvailable = function(path, res_) {
             	var streamStatus = self._streamsStatus[path];
-            	var requests = streamStatus.requests;
+
+                if (!streamStatus) {
+                    debugger;
+                    return
+                }
+
+                var requests = streamStatus.requests;
                 requests.forEach( function(req_) {
+                    // console.log('\t', req_.uri)
                     var subArray = res_.slice(req_.range[0], req_.range[1]);
                     var convertedResource = req_.delegate.convert(subArray, req_.ctx);
                     self._storeResource(req_.id, convertedResource);
@@ -189,7 +204,7 @@ THREE.GLTFLoaderUtils = Object.create(Object, {
                     --self._resourcesStatus[req_.id];
 
                 }, this);
-            	
+
                 delete self._streamsStatus[path];
 
             };
@@ -205,9 +220,9 @@ THREE.GLTFLoaderUtils = Object.create(Object, {
 
     _elementSizeForGLType: {
         value: function(componentType, type) {
-    	
+
     		var nElements = 0;
-    		switch(type) {    		
+    		switch(type) {
 	            case "SCALAR" :
 	                nElements = 1;
 	                break;
@@ -233,7 +248,7 @@ THREE.GLTFLoaderUtils = Object.create(Object, {
 	            	debugger;
 	            	break;
     		}
-    		
+
             switch (componentType) {
                 case WebGLRenderingContext.FLOAT :
                     return Float32Array.BYTES_PER_ELEMENT * nElements;
@@ -263,9 +278,9 @@ THREE.GLTFLoaderUtils = Object.create(Object, {
                                     "ctx" : ctx }, null);
         }
     },
-    
+
     getBuffer: {
-    	
+
             value: function(wrappedBufferView, delegate, ctx) {
 
             var savedBuffer = this._getResource(wrappedBufferView.id);
@@ -280,7 +295,7 @@ THREE.GLTFLoaderUtils = Object.create(Object, {
     },
 
     getFile: {
-    	
+
         value: function(request, delegate, ctx) {
 
     		request.delegate = delegate;
@@ -292,8 +307,8 @@ THREE.GLTFLoaderUtils = Object.create(Object, {
                 "type" : "text",
                 "delegate" : delegate,
                 "ctx" : ctx }, null);
-    	
+
             return null;
 	    }
-	},    
+	},
 });

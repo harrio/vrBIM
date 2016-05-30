@@ -1,49 +1,102 @@
 var container, stats;
 
-var camera, scene, renderer, controls, object;
+var camera, scene, renderer, manager, controls, object, dolly;
 var particleLight, pointLight;
 
 var gltf = null;
+var beaconGroup;
+var effect, raycaster;
+var INTERSECTED;
+var crosshair;
+
+var clock = new THREE.Clock();
 
 function init() {
 
   container = document.getElementById( 'viewport' );
 
-  camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 2000 );
-  camera.position.set( 0, 5, 100 );
-
   scene = new THREE.Scene();
+
+  camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 10000);
+  scene.add(camera);
+  //camera.position.set(0, 5, 10);
+  crosshair = new THREE.Mesh(
+					new THREE.RingGeometry( 0.02, 0.04, 32 ),
+					new THREE.MeshBasicMaterial( {
+						color: 0xffffff,
+						opacity: 0.5,
+						transparent: true
+					} )
+				);
+	crosshair.position.z = - 2;
+	camera.add(crosshair);
+
+  raycaster = new THREE.Raycaster();
+
   // Lights
 
   scene.add( new THREE.AmbientLight( 0xcccccc ) );
 
   pointLight = new THREE.PointLight( 0xff4400, 5, 30 );
-  pointLight.position.set( 5, 0, 0 );
+  pointLight.position.set(0, 10, 0);
   scene.add( pointLight );
 
   // Renderer
 
-  renderer = new THREE.WebGLRenderer();
+  renderer = new THREE.WebGLRenderer({antialias:true});
   renderer.setPixelRatio( window.devicePixelRatio );
-  renderer.setSize( window.innerWidth, window.innerHeight );
+  //renderer.setSize( window.innerWidth, window.innerHeight );
+  //renderer.sortObjects = false;
   container.appendChild( renderer.domElement );
 
-  controls = new THREE.TrackballControls(camera, renderer.domElement);
-  controls.rotateSpeed = 1.0;
-  controls.zoomSpeed = 1.2;
-  controls.panSpeed = 0.8;
-  controls.noZoom = false;
-  controls.noPan = false;
-  controls.staticMoving = true;
-  controls.dynamicDampingFactor = 0.3;
-  controls.keys = [ 65, 83, 68 ];
-  controls.addEventListener( 'change', render );
+  controls = new THREE.VRControls(camera);
+  controls.standing = true;
 
-  scene.add( new THREE.GridHelper( 100, 2.5 ) );
+  effect = new THREE.VREffect(renderer);
+  effect.setSize(window.innerWidth, window.innerHeight);
 
-  window.addEventListener( 'resize', onWindowResize, false );
+  var params = {
+    hideButton: false, // Default: false.
+    isUndistorted: false // Default: false.
+  };
+  manager = new WebVRManager(renderer, effect, params);
 
-  render();
+  dolly = new THREE.Group();
+  //dolly.position.set(10, 10, 40);
+  scene.add( dolly );
+  dolly.add( camera );
+
+  //if (WEBVR.isAvailable() === true) {
+	//   document.body.appendChild(WEBVR.getButton(effect));
+	//}
+
+  //scene.add( new THREE.GridHelper( 100, 2.5 ) );
+
+  var geometry = new THREE.PlaneGeometry(100, 100);
+  var material = new THREE.MeshBasicMaterial( {color: 0x00ff00, side: THREE.DoubleSide} );
+  var plane = new THREE.Mesh( geometry, material );
+  plane.rotation.x = Math.PI / 180 * 90;
+  scene.add( plane );
+
+  addBeacons();
+
+  window.addEventListener('resize', onWindowResize, true);
+  window.addEventListener('vrdisplaypresentchange', onWindowResize, true);
+  requestAnimationFrame(animate);
+}
+
+function addBeacons() {
+  beaconGroup = new THREE.Group();
+  for (var i = 0; i < 20; i++) {
+    var geometry = new THREE.SphereGeometry( 0.1, 32, 32 );
+    var material = new THREE.MeshLambertMaterial( {color: 0xff0000} );
+    var sphere = new THREE.Mesh( geometry, material );
+    sphere.position.x = 20*Math.cos(i);
+    sphere.position.z = 20*Math.sin(i);
+    sphere.position.y = 1;
+    beaconGroup.add(sphere);
+  }
+  scene.add(beaconGroup);
 }
 
 function loadModel(name) {
@@ -57,40 +110,64 @@ function loadModel(name) {
       gltf = obj;
       object = obj.scene;
 
-      scene.add( object );
-
-      camera.lookAt(object.position);
-
-      scene.add( new THREE.AmbientLight( 0xcccccc ) );
-
-      pointLight = new THREE.PointLight( 0xff4400, 5, 30 );
-      pointLight.position.set( 5, 0, 0 );
-      scene.add( pointLight );
-
-      THREE.glTFShaders.update(scene, camera);
-      render();
+      scene.add(object);
+      onWindowResize();
+      //THREE.glTFShaders.update(scene, camera);
+      //render();
     }
   );
 }
 
 function onWindowResize( event ) {
 
-  renderer.setSize( window.innerWidth, window.innerHeight );
+  // renderer.setSize( window.innerWidth, window.innerHeight );
+  //
+  // camera.aspect = window.innerWidth / window.innerHeight;
+  // camera.updateProjectionMatrix();
 
   camera.aspect = window.innerWidth / window.innerHeight;
+  effect.setSize(window.innerWidth, window.innerHeight);
   camera.updateProjectionMatrix();
-
 }
 
-function animate() {
-  requestAnimationFrame( animate );
-
-  THREE.glTFShaders.update(scene, camera);
+var lastRender = 0;
+function animate(timestamp) {
+  var delta = Math.min(timestamp - lastRender, 500);
+  lastRender = timestamp;
   controls.update();
+  //camera.updateMatrixWorld();
+  THREE.glTFAnimator.update();
+  THREE.glTFShaders.update(scene, camera);
+  render();
+
+  manager.render(scene, camera, timestamp);
+  requestAnimationFrame(animate);
 }
 
 function render() {
-  renderer.render( scene, camera );
+  raycaster.setFromCamera( { x: 0, y: 0 }, camera );
+  var intersects = raycaster.intersectObjects(beaconGroup.children);
+	if (intersects.length > 0) {
+	   if (INTERSECTED != intersects[0].object) {
+       if (INTERSECTED) INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
+			 INTERSECTED = intersects[0].object;
+			 INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
+			 INTERSECTED.material.emissive.setHex( 0x00ff00 );
+
+       dolly.position.set(INTERSECTED.position.x, INTERSECTED.position.y, INTERSECTED.position.z);
+     }
+	} else {
+		if (INTERSECTED) INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
+		INTERSECTED = undefined;
+  }
+
+  var delta = 0.75 * clock.getDelta();
+
+  if (object) {
+    //object.position.x = object.position.x + 0.01;
+    object.rotation.y = Math.PI / 4;
+  }
+  //renderer.render( scene, camera );
 }
 
 function selectModel() {
@@ -100,5 +177,4 @@ function selectModel() {
 
 window.onload = function() {
    init();
-   animate();
 }

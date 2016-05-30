@@ -2,6 +2,11 @@ doctype html
 html
   head
     title= title
+    meta(charset="utf-8")
+    meta(name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0, shrink-to-fit=no")
+    meta(name="mobile-web-app-capable" content="yes")
+    meta(name="apple-mobile-web-app-capable" content="yes")
+    meta(name="apple-mobile-web-app-status-bar-style" content="black-translucent")
     link(rel='stylesheet', href='/stylesheets/style.css')
 
     script(src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r76/three.min.js")
@@ -11,6 +16,11 @@ html
     script(src="javascripts/glTFLoaderUtils.js")
     script(src="javascripts/glTFAnimation.js")
     script(src="javascripts/glTFShaders.js")
+    script(src="javascripts/WebVR.js")
+    script(src="javascripts/VREffect.js")
+    script(src="javascripts/VRControls.js")
+    script(src="webvr-boilerplate/build/webvr-manager.js")
+    script(src="webvr-boilerplate/node_modules/webvr-polyfill/build/webvr-polyfill.js")
     script(src="javascripts/main.js")
   body
     block content

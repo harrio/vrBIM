@@ -102,7 +102,7 @@ var global = window;
 				if (isDataUriRegex.test(path)) {
 					return path;
 				}
-				
+
 				return this.baseURL + path;
 			}
 		},
@@ -250,7 +250,7 @@ var global = window;
 					} else {
 
 						if (methodForType[type]) {
-							if (methodForType[type].call(this, entryID, description, this._state.userInfo) === false) {
+							if (methodForType[type].call(this, entryID, description, this._state.loadContext) === false) {
 								success = false;
 								break;
 							}
@@ -340,12 +340,12 @@ var global = window;
 
 		load: {
 			enumerable: true,
-			value: function(userInfo, options) {
+			value: function(loadContext, options) {
 				var self = this;
 				this._buildLoader(function loaderReady(reader) {
 					var startCategory = self.getNextCategoryIndex.call(self,0);
 					if (startCategory !== -1) {
-						self._state = { "userInfo" : userInfo,
+						self._state = { "loadContext" : loadContext,
 										"options" : options,
 										"categoryIndex" : startCategory,
 										"categoryState" : { "index" : "0" } };

@@ -200,5 +200,3 @@ SOFTWARE.
         loadText : loadText
     };
 }));
-
-
