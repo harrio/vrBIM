@@ -1,6 +1,6 @@
 var container, stats;
 
-var camera, scene, renderer, manager, controls, object, dolly;
+var camera, scene, renderer, manager, controls, object, dolly, bbox;
 var particleLight, pointLight;
 
 var gltf = null;
@@ -37,9 +37,9 @@ function init() {
 
   scene.add( new THREE.AmbientLight( 0xcccccc ) );
 
-  pointLight = new THREE.PointLight( 0xff4400, 5, 30 );
-  pointLight.position.set(0, 10, 0);
-  scene.add( pointLight );
+  //pointLight = new THREE.PointLight( 0xff4400, 5, 30 );
+  //pointLight.position.set(0, 10, 0);
+  //scene.add( pointLight );
 
   // Renderer
 
@@ -72,13 +72,9 @@ function init() {
 
   //scene.add( new THREE.GridHelper( 100, 2.5 ) );
 
-  var geometry = new THREE.PlaneGeometry(100, 100);
-  var material = new THREE.MeshBasicMaterial( {color: 0x00ff00, side: THREE.DoubleSide} );
-  var plane = new THREE.Mesh( geometry, material );
-  plane.rotation.x = Math.PI / 180 * 90;
-  scene.add( plane );
-
   addBeacons();
+  addSkybox();
+  addGround();
 
   window.addEventListener('resize', onWindowResize, true);
   window.addEventListener('vrdisplaypresentchange', onWindowResize, true);
@@ -99,6 +95,22 @@ function addBeacons() {
   scene.add(beaconGroup);
 }
 
+function addSkybox() {
+  var skyGeo = new THREE.SphereGeometry(100, 25, 25);
+  var material = new THREE.MeshPhongMaterial( {color: 0x00dfff} );
+  var sky = new THREE.Mesh(skyGeo, material);
+  sky.material.side = THREE.BackSide;
+  scene.add(sky);
+}
+
+function addGround() {
+  var geometry = new THREE.PlaneGeometry(100, 100);
+  var material = new THREE.MeshBasicMaterial( {color: 0x7cc00, side: THREE.DoubleSide} );
+  var plane = new THREE.Mesh( geometry, material );
+  plane.rotation.x = Math.PI / 180 * 90;
+  scene.add(plane);
+}
+
 function loadModel(name) {
   scene.remove(object);
   var loader = new THREE.glTFLoader();
@@ -112,8 +124,15 @@ function loadModel(name) {
 
       scene.add(object);
       onWindowResize();
-      //THREE.glTFShaders.update(scene, camera);
-      //render();
+
+      if (bbox) {
+        scene.remove(bbox);
+      }
+      bbox = new THREE.BoundingBoxHelper(object, 0xff0000);
+      bbox.update();
+      console.log("Y " + object.position.y + " ---> " + bbox.box.min.y);
+      object.position.y =- bbox.box.min.y;
+      //scene.add(bbox);
     }
   );
 }
@@ -137,9 +156,13 @@ function animate(timestamp) {
   controls.update();
   //camera.updateMatrixWorld();
   THREE.glTFAnimator.update();
-  THREE.glTFShaders.update(scene, camera);
+  if (object) {
+    THREE.glTFShaders.update(scene, camera);
+  }
   render();
-
+  if (bbox) {
+    bbox.update();
+  }
   manager.render(scene, camera, timestamp);
   requestAnimationFrame(animate);
 }
@@ -154,7 +177,9 @@ function render() {
 			 INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
 			 INTERSECTED.material.emissive.setHex( 0x00ff00 );
 
-       dolly.position.set(INTERSECTED.position.x, INTERSECTED.position.y, INTERSECTED.position.z);
+       dolly.position.set(INTERSECTED.position.x, dolly.position.y, INTERSECTED.position.z);
+       console.log("D " + dolly.position.x + ", " + dolly.position.y + ", " + dolly.position.z);
+       console.log("C " + camera.position.x + ", " + camera.position.y + ", " + camera.position.z);
      }
 	} else {
 		if (INTERSECTED) INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
@@ -162,12 +187,6 @@ function render() {
   }
 
   var delta = 0.75 * clock.getDelta();
-
-  if (object) {
-    //object.position.x = object.position.x + 0.01;
-    object.rotation.y = Math.PI / 4;
-  }
-  //renderer.render( scene, camera );
 }
 
 function selectModel() {
