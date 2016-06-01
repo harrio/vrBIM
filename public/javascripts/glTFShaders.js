@@ -143,6 +143,8 @@ THREE.glTFShader.prototype.bindParameters = function(scene) {
 			}
 
 			this.semantics[pname] = p;
+			//console.log(""+pname+": "+p.semantic);
+			//if (p.semantic.uniform) console.log("     "+p.semantic.uniform.value);
 
 		}
 	}
@@ -168,6 +170,7 @@ THREE.glTFShader.prototype.update = function(scene, camera) {
 	            case "MODELVIEW" :
 	                if (semantic.sourceObject) {
 		                var m4 = semantic.uniform.value;
+
 		                m4.multiplyMatrices(camera.matrixWorldInverse,
 		                	semantic.sourceObject.matrixWorld);
 	                }

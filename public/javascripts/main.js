@@ -19,7 +19,7 @@ function init() {
 
   camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 10000);
   scene.add(camera);
-  //camera.position.set(0, 5, 10);
+  camera.position.set(0, 5, 10);
   crosshair = new THREE.Mesh(
 					new THREE.RingGeometry( 0.02, 0.04, 32 ),
 					new THREE.MeshBasicMaterial( {
@@ -92,8 +92,35 @@ function addBeacons() {
     sphere.position.y = 1;
     beaconGroup.add(sphere);
   }
+
   scene.add(beaconGroup);
+
+  fooGroup = new THREE.Group();
+
+  fooGroup.add(cube(10,3,10));
+  fooGroup.add(cube(18,3,18));
+  fooGroup.add(cube(10,10,10));  
+  fooGroup.add(cube(0,3,26));
+
+  //scene.add(fooGroup);
+
+
+
 }
+
+function cube(x,y,z,size) {
+  var geometry = new THREE.BoxGeometry(5,5,5);
+//  var material = new THREE.MeshLambertMaterial( {color: 0xff7700} );
+  var material = new THREE.MeshNormalMaterial();
+  var foo = new THREE.Mesh(geometry, material);
+
+  foo.position.x = x;
+  foo.position.y = y;
+  foo.position.z = z;
+
+  return foo;
+}
+
 
 function addSkybox() {
   var vertexShader = document.getElementById( 'vertexShader' ).textContent;
@@ -138,6 +165,16 @@ function loadModel(name) {
       gltf = obj;
       object = obj.scene;
 
+      console.log("Alussa: " + object.matrixAutoUpdate + " " + object.rotationAutoUpdate);
+
+      object.matrixAutoUpdate = false;
+      object.rotationAutoUpdate = false;
+
+
+      console.log("Lopussa: " + object.matrixAutoUpdate + " " + object.rotationAutoUpdate);
+
+      console.log(obj);
+
       scene.add(object);
       onWindowResize();
 
@@ -149,6 +186,11 @@ function loadModel(name) {
       console.log("Y " + object.position.y + " ---> " + bbox.box.min.y);
       object.position.y =- bbox.box.min.y;
       //scene.add(bbox);
+
+      object.parent.matrixAutoUpdate = false;
+      object.parent.rotationAutoUpdate = false;
+
+
     }
   );
 }
@@ -167,20 +209,25 @@ function onWindowResize( event ) {
 
 var lastRender = 0;
 function animate(timestamp) {
+  requestAnimationFrame(animate);
   var delta = Math.min(timestamp - lastRender, 500);
   lastRender = timestamp;
   controls.update();
   //camera.updateMatrixWorld();
-  THREE.glTFAnimator.update();
+  //THREE.glTFAnimator.update();
+  
+  var hook;
   if (object) {
-    THREE.glTFShaders.update(scene, camera);
+    hook = function (scene, camera) {
+      THREE.glTFShaders.update(scene, camera);
+    }
   }
   render();
   if (bbox) {
     bbox.update();
   }
-  manager.render(scene, camera, timestamp);
-  requestAnimationFrame(animate);
+  manager.render(scene, camera, timestamp, hook);
+  
 }
 
 function render() {
