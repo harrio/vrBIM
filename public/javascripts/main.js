@@ -12,6 +12,10 @@ var crosshair;
 var clock = new THREE.Clock();
 var renderCallback;
 
+
+var tween;
+var tweenPos;
+
 function init() {
 
   container = document.getElementById( 'viewport' );
@@ -34,9 +38,9 @@ function init() {
 
   scene.add( new THREE.AmbientLight( 0xcccccc ) );
 
-  //pointLight = new THREE.PointLight( 0xff4400, 5, 30 );
-  //pointLight.position.set(0, 10, 0);
-  //scene.add( pointLight );
+  pointLight = new THREE.PointLight( 0xff4400, 5, 30 );
+  pointLight.position.set(0, 10, 0);
+  scene.add( pointLight );
 
   // Renderer
 
@@ -91,10 +95,11 @@ function setCrosshairColor(hex) {
 function addBeacons() {
   beaconGroup = new THREE.Group();
 
-  for (var i = -5; i < 5; i++) {
-    for (var j = -5; j < 5; j++) {
-      for (var k = 0 ; k < 3; k++) {
-          beaconGroup.add(sphere(i*3, k*3+1, j*3));
+  for (var i = -15; i < 25; i++) {
+    for (var j = -15; j < 25; j++) {
+      for (var k = 0 ; k < 4; k++) {
+          if ((i % 3 == 0) && (j % 3 == 0))
+            beaconGroup.add(sphere(i, k*3+1, j));
       }
     }
   }
@@ -232,7 +237,7 @@ function highlightBeacon(obj, boolean) {
 function render() {
   var obj = getIntersectedBeacon();
 	
-  if (!obj) { // clear previous highlight if any and reset timer if 
+  if (!obj || tween) { // clear previous highlight if any and reset timer 
     if (INTERSECTED) {
       highlightBeacon(INTERSECTED, false);
       INTERSECTED.timestamp = undefined;
@@ -252,13 +257,32 @@ function render() {
 
        if (Date.now() - INTERSECTED.timestamp > 2000) { // 2 second stare duration
          setCrosshairColor(0xffffff);
-         dolly.position.set(INTERSECTED.position.x, INTERSECTED.position.y-1, INTERSECTED.position.z);
+         //dolly.position.set(INTERSECTED.position.x, INTERSECTED.position.y-1, INTERSECTED.position.z);
          console.log("D " + dolly.position.x + ", " + dolly.position.y + ", " + dolly.position.z);
          console.log("C " + camera.position.x + ", " + camera.position.y + ", " + camera.position.z);
          highlightBeacon(INTERSECTED, false);
          INTERSECTED.timestamp = undefined;
+
+
+         tweenPos = {x: dolly.position.x, y: dolly.position.y, z: dolly.position.z};
+
+         tween = new TWEEN.Tween(tweenPos).to({x: INTERSECTED.position.x, y: INTERSECTED.position.y-1, z: INTERSECTED.position.z}, 1000);
+         tween.onUpdate(function(){
+            dolly.position.set(tweenPos.x, tweenPos.y, tweenPos.z);
+         })
+         tween.onComplete(function() {
+            tween = undefined;
+         })
+         tween.easing(TWEEN.Easing.Quadratic.In);
+         
+         tween.start();
        }
   }
+
+  if (tween) {
+    TWEEN.update();
+  }
+
 
   var delta = 0.75 * clock.getDelta();
 }
