@@ -10,6 +10,7 @@ var INTERSECTED;
 var crosshair;
 
 var clock = new THREE.Clock();
+var renderCallback;
 
 function init() {
 
@@ -21,13 +22,9 @@ function init() {
   scene.add(camera);
   camera.position.set(0, 5, 10);
   crosshair = new THREE.Mesh(
-					new THREE.RingGeometry( 0.02, 0.04, 32 ),
-					new THREE.MeshBasicMaterial( {
-						color: 0xffffff,
-						opacity: 0.5,
-						transparent: true
-					} )
+					new THREE.RingGeometry( 0.02, 0.04, 32 )
 				);
+  setCrosshairColor(0xffffff);
 	crosshair.position.z = - 2;
 	camera.add(crosshair);
 
@@ -81,44 +78,44 @@ function init() {
   requestAnimationFrame(animate);
 }
 
+function setCrosshairColor(hex) {
+  crosshair.material = 
+    new THREE.MeshBasicMaterial( {
+            color: hex,
+            opacity: 0.8,
+            transparent: true
+          } );
+  crosshair.material.depthTest = false;
+}
+
 function addBeacons() {
   beaconGroup = new THREE.Group();
-  for (var i = 0; i < 20; i++) {
-    var geometry = new THREE.SphereGeometry( 0.1, 32, 32 );
-    var material = new THREE.MeshLambertMaterial( {color: 0xff0000} );
-    var sphere = new THREE.Mesh( geometry, material );
-    sphere.position.x = 20*Math.cos(i);
-    sphere.position.z = 20*Math.sin(i);
-    sphere.position.y = 1;
-    beaconGroup.add(sphere);
+
+  for (var i = -5; i < 5; i++) {
+    for (var j = -5; j < 5; j++) {
+      for (var k = 0 ; k < 3; k++) {
+          beaconGroup.add(sphere(i*3, k*3+1, j*3));
+      }
+    }
   }
 
   scene.add(beaconGroup);
 
-  fooGroup = new THREE.Group();
-
-  fooGroup.add(cube(10,3,10));
-  fooGroup.add(cube(18,3,18));
-  fooGroup.add(cube(10,10,10));  
-  fooGroup.add(cube(0,3,26));
-
-  //scene.add(fooGroup);
-
-
-
 }
 
-function cube(x,y,z,size) {
-  var geometry = new THREE.BoxGeometry(5,5,5);
-//  var material = new THREE.MeshLambertMaterial( {color: 0xff7700} );
-  var material = new THREE.MeshNormalMaterial();
-  var foo = new THREE.Mesh(geometry, material);
-
-  foo.position.x = x;
-  foo.position.y = y;
-  foo.position.z = z;
-
-  return foo;
+function sphere(x,y,z) {
+    var geometry = new THREE.SphereGeometry( 0.1, 8, 8);
+    var material = new THREE.MeshBasicMaterial( {
+            color: 0xff0000,
+            opacity: 0.1,
+            transparent: true
+          } );
+    var sphere = new THREE.Mesh( geometry, material );
+    sphere.position.x = x; 
+    sphere.position.z = z; 
+    sphere.position.y = y; 
+    material.depthTest = false;
+    return sphere;
 }
 
 
@@ -165,15 +162,8 @@ function loadModel(name) {
       gltf = obj;
       object = obj.scene;
 
-      console.log("Alussa: " + object.matrixAutoUpdate + " " + object.rotationAutoUpdate);
-
       object.matrixAutoUpdate = false;
       object.rotationAutoUpdate = false;
-
-
-      console.log("Lopussa: " + object.matrixAutoUpdate + " " + object.rotationAutoUpdate);
-
-      console.log(obj);
 
       scene.add(object);
       onWindowResize();
@@ -190,6 +180,9 @@ function loadModel(name) {
       object.parent.matrixAutoUpdate = false;
       object.parent.rotationAutoUpdate = false;
 
+      renderCallback = function (scene, camera) { 
+        THREE.glTFShaders.update(scene, camera);
+      }
 
     }
   );
@@ -216,37 +209,55 @@ function animate(timestamp) {
   //camera.updateMatrixWorld();
   //THREE.glTFAnimator.update();
   
-  var hook;
-  if (object) {
-    hook = function (scene, camera) {
-      THREE.glTFShaders.update(scene, camera);
-    }
-  }
   render();
   if (bbox) {
     bbox.update();
   }
-  manager.render(scene, camera, timestamp, hook);
+  manager.render(scene, camera, timestamp, renderCallback);
   
 }
 
-function render() {
+function getIntersectedBeacon() {
   raycaster.setFromCamera( { x: 0, y: 0 }, camera );
   var intersects = raycaster.intersectObjects(beaconGroup.children);
-	if (intersects.length > 0) {
-	   if (INTERSECTED != intersects[0].object) {
-       if (INTERSECTED) INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
-			 INTERSECTED = intersects[0].object;
-			 INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
-			 INTERSECTED.material.emissive.setHex( 0x00ff00 );
+  if (intersects.length > 0) {
+    return intersects[0].object;
+  }
+}
 
-       dolly.position.set(INTERSECTED.position.x, dolly.position.y, INTERSECTED.position.z);
-       console.log("D " + dolly.position.x + ", " + dolly.position.y + ", " + dolly.position.z);
-       console.log("C " + camera.position.x + ", " + camera.position.y + ", " + camera.position.z);
-     }
-	} else {
-		if (INTERSECTED) INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
-		INTERSECTED = undefined;
+function highlightBeacon(obj, boolean) {
+  obj.material.color.setHex(boolean ? 0x00ff00 : 0xff0000);
+}
+
+function render() {
+  var obj = getIntersectedBeacon();
+	
+  if (!obj) { // clear previous highlight if any and reset timer if 
+    if (INTERSECTED) {
+      highlightBeacon(INTERSECTED, false);
+      INTERSECTED.timestamp = undefined;
+    }
+    INTERSECTED = undefined;
+    setCrosshairColor(0xffffff);
+  } else {
+       if (INTERSECTED && INTERSECTED != obj) { // clear previous highlight
+          INTERSECTED.timestamp = undefined;
+          highlightBeacon(INTERSECTED, false);
+       }
+       // highlight crosshair and beacon and start stare timer
+       setCrosshairColor(0x00ffff);
+			 INTERSECTED = obj; 
+       highlightBeacon(INTERSECTED, true);
+       if (!INTERSECTED.timestamp) INTERSECTED.timestamp = Date.now();
+
+       if (Date.now() - INTERSECTED.timestamp > 2000) { // 2 second stare duration
+         setCrosshairColor(0xffffff);
+         dolly.position.set(INTERSECTED.position.x, INTERSECTED.position.y-1, INTERSECTED.position.z);
+         console.log("D " + dolly.position.x + ", " + dolly.position.y + ", " + dolly.position.z);
+         console.log("C " + camera.position.x + ", " + camera.position.y + ", " + camera.position.z);
+         highlightBeacon(INTERSECTED, false);
+         INTERSECTED.timestamp = undefined;
+       }
   }
 
   var delta = 0.75 * clock.getDelta();
