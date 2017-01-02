@@ -1,7 +1,7 @@
 /* global THREE */
 
 const _createCone = (x,y,z) => {
-    const geometry = new THREE.CylinderGeometry(0.5, 0.5, 4, 8, 8);
+    const geometry = new THREE.CylinderGeometry(0.5, 0.5, 0.3, 8, 8);
     const material = new THREE.MeshBasicMaterial( {
             color: 0xffff00,
             opacity: 0.4,
