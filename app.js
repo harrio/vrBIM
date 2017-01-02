@@ -10,7 +10,6 @@ var users = require('./routes/users');
 
 var watchr = require('watchr');
 var ifcConvert = require('ifc-convert');
-var collada2gltf = require('collada2gltf');
 var multer = require('multer');
 var bodyParser = require('body-parser');
 var fs = require('fs');
@@ -36,33 +35,19 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'node_modules')));
-app.use(express.static(path.join(__dirname, 'gltf')));
-
-/*app.use('/', routes);
-app.use('/users', users);*/
+app.use(express.static(path.join(__dirname, 'models')));
 
 app.post('/upload', multer({ dest: './ifc/'}).single('upl'), (req,res) => {
  	console.log(req.file); //form files
-	/* example output:
-            { fieldname: 'upl',
-              originalname: 'grumpy.png',
-              encoding: '7bit',
-              mimetype: 'image/png',
-              destination: './uploads/',
-              filename: '436ec561793aa4dc475a88e84776b1b9',
-              path: 'uploads/436ec561793aa4dc475a88e84776b1b9',
-              size: 277056 }
-	 */
   nameMap[req.file.filename] = req.file.originalname;
   res.status(204).end();
 });
 
 app.get('/', (req, res, next) => {
-  fs.readdir("./gltf", (err, items) => {
+  fs.readdir("./models", (err, items) => {
       console.log(items);
       var models = items.filter((item) => { return item.indexOf(".js") > 0});
       res.render("models.jade", {"models": models});
-      //res.send(gltfs.map((item) => { return {"file": item}}));
   });
 });
 
@@ -100,13 +85,13 @@ app.use((err, req, res, next) => {
 var convertObjToJson = (srcPath, originalName) => {
   var options = {
     mode: 'text',
-    args: ['-i', srcPath, '-o', "gltf/" + originalName + '.js']
+    args: ['-i', srcPath, '-o', "models/" + originalName + '.js']
   };
 
   PythonShell.run('convert_obj_three.py', options, function (err, results) {
     if (err) throw err;
     fs.unlink(srcPath, () => { console.log("OBJ file deleted.")})
-    fs.unlink("gltf/" + originalName + '.mtl', () => { console.log("MTL file deleted.")})
+    fs.unlink("models/" + originalName + '.mtl', () => { console.log("MTL file deleted.")})
     // results is an array consisting of messages collected during execution
     console.log('results: %j', results);
   });
@@ -116,7 +101,7 @@ var convertIfc = (path) => {
   var filename = path.replace(/^.*[\\\/]/, '');
   var originalName = nameMap[filename];
   console.log("CONVERT " + path + " -> " + originalName);
-  var objPath = './gltf/' + originalName + '.obj';
+  var objPath = './models/' + originalName + '.obj';
   ifcConvert(path, objPath, {path: '.'})
    .then(() => {
      convertObjToJson(objPath, originalName);
