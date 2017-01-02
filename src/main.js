@@ -98,7 +98,6 @@ const resizeWindow = (width, height) => {
   camera.aspect = width / height;
   effect.setSize(width, height);
   camera.updateProjectionMatrix();
-  renderer.setSize(width, height);
 };
 
 const setClickListeners = () => {
