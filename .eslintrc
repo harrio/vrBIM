@@ -1,0 +1,19 @@
+ {
+    "ecmaFeatures": {
+      "globalReturn": true,
+      "modules": true
+    },
+    "env": {
+      "browser": true,
+      "node": true
+    },
+    "extends": "eslint:recommended",
+    "globals": {
+        "WebVRManager", true,
+    },
+    "parser": "babel-eslint",
+    "rules": {
+        "quotes": ["error", "single"],
+        "no-unused-vars": ["error", { "varsIgnorePattern": "[loadModel|showUpload|hideUpload]" }]
+    }
+}
