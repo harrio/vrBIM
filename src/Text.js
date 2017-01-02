@@ -12,8 +12,8 @@ loadFont('fonts/DejaVu-sdf.fnt', function(err, f) {
 
 const loader = new THREE.TextureLoader();
 loader.load('fonts/DejaVu-sdf.png', (tx) => {
-  console.log("Texture loaded");
-  texture = tx;});
+  texture = tx;
+});
 
 const makeText = (message, renderer) => {
 
