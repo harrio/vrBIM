@@ -109,37 +109,21 @@ var convertIfc = (path) => {
   .catch((e) => { console.log("IFC conversion failed", e) });
 }
 
-watchr.watch({
-  paths: ['./ifc'],
-    listeners: {
-      change: (changeType, filePath, fileCurrentStat, filePreviousStat) => {
-        if (changeType == 'create') {
-          console.log("CREATED " + filePath);
-          convertIfc(filePath);
-        }
-      },
-      log: (logLevel) => {
-            //console.log('a log message occured:', arguments);
-        },
-        error: (err) => {
-            console.log('an error occured:', err);
-        },
-        watching: (err,watcherInstance,isWatching) => {
-            if (err) {
-                console.log("watching the path " + watcherInstance.path + " failed with error", err);
-            } else {
-                //console.log("watching the path " + watcherInstance.path + " completed");
-            }
-        }
-    },
-    next: (err,watchers) => {
-        if (err) {
-            return console.log("watching everything failed with error", err);
-        } else {
-            console.log('watching everything completed');
-        }
+var fileListener = (changeType, fullPath, currentStat, previousStat) => {
+  switch (changeType) {
+    case 'create':
+      console.log("CREATED " + fullPath);
+      convertIfc(fullPath);
+      break;
     }
-});
+}
+var path = './ifc';
+var next = (err) => {
+    if (err) return console.log('watch failed on', path, 'with error', err);
+    console.log('watch successful on', path);
+}
+
+var stalker = watchr.open(path, fileListener, next);
 
 var port = process.argv[2];
 port = port ? port : PORT;
