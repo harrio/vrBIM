@@ -17,7 +17,7 @@ const createMenuToggle = (dolly) => {
   const geometry = new THREE.CylinderGeometry(0, 0.05, 0.05, 8);
   const material = new THREE.MeshLambertMaterial({color: 0xff0000});
   menuToggle = new THREE.Mesh(geometry, material);
-  menuToggle.rotation.x = Math.PI / 180 * -45;
+  menuToggle.rotation.x = mpi * -45;
   menuToggle.position.z = -0.5;
   menuToggle.position.y = 1;
 

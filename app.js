@@ -45,9 +45,9 @@ app.post('/upload', multer({ dest: './ifc/'}).single('upl'), (req,res) => {
 
 app.get('/', (req, res, next) => {
   fs.readdir("./models", (err, items) => {
-      console.log(items);
-      var models = items.filter((item) => { return item.indexOf(".js") > 0});
-      res.render("models.jade", {"models": models});
+    console.log(items);
+    var models = items.filter((item) => { return item.indexOf(".js") > 0});
+    res.render("models.jade", {"models": models});
   });
 });
 
@@ -119,8 +119,8 @@ var fileListener = (changeType, fullPath, currentStat, previousStat) => {
 }
 var path = './ifc';
 var next = (err) => {
-    if (err) return console.log('watch failed on', path, 'with error', err);
-    console.log('watch successful on', path);
+  if (err) return console.log('watch failed on', path, 'with error', err);
+  console.log('watch successful on', path);
 }
 
 var stalker = watchr.open(path, fileListener, next);

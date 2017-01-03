@@ -105,28 +105,28 @@ const setClickListeners = () => {
 }
 
 const clickHandler = (event) => {
-    const menu = getIntersectedMenu();
-    if (menu) {
-      if (menu.name == 'MenuToggle') {
-        toggleMenu();
-      } else {
-        BimManager.toggleMaterial(menu);
-      }
-    } else if (teleportOn && !onMenu && teleporter && (VRManager.mode == 3 || (event && event.button == 2))) {
-      moveDollyTo(dolly, {x: teleporter.position.x, y: teleporter.position.y, z: teleporter.position.z});
-      if (event) event.stopPropagation();
+  const menu = getIntersectedMenu();
+  if (menu) {
+    if (menu.name == 'MenuToggle') {
+      toggleMenu();
+    } else {
+      BimManager.toggleMaterial(menu);
     }
+  } else if (teleportOn && !onMenu && teleporter && (VRManager.mode == 3 || (event && event.button == 2))) {
+    moveDollyTo(dolly, {x: teleporter.position.x, y: teleporter.position.y, z: teleporter.position.z});
+    if (event) event.stopPropagation();
+  }
 }
 
 
 const toggleMenu = () => {
-    if (menuParent) {
-      Menu.hideMenu(dolly);
-      menuParent = null;
-    } else {
-      menuParent = Menu.createMenu(dolly, camera, renderer, BimManager.getMaterials());
-    }
-    toggleNavigation();
+  if (menuParent) {
+    Menu.hideMenu(dolly);
+    menuParent = null;
+  } else {
+    menuParent = Menu.createMenu(dolly, camera, renderer, BimManager.getMaterials());
+  }
+  toggleNavigation();
 }
 
 var lastRender = 0;
@@ -270,8 +270,8 @@ const loadModel = (name) => {
 };
 
 const isDomElementHidden = (el) => {
-    const style = window.getComputedStyle(el);
-    return (style.display === 'none')
+  const style = window.getComputedStyle(el);
+  return (style.display === 'none')
 }
 
 const showDom = (domSelector) => {
