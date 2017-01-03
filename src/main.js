@@ -1,7 +1,6 @@
 /* global THREE */
 /* global THREEx */
 
-import TWEEN from 'tween.js';
 import * as BimManager from './BimManager';
 import * as Navigator from './Navigator';
 import * as Teleporter from './Teleporter';
@@ -114,7 +113,7 @@ const clickHandler = (event) => {
         BimManager.toggleMaterial(menu);
       }
     } else if (teleportOn && !onMenu && teleporter && (VRManager.mode == 3 || (event && event.button == 2))) {
-      moveDollyTo(dolly, {x: teleporter.position.x, y: teleporter.position.y, z: teleporter.position.z}, 500);
+      moveDollyTo(dolly, {x: teleporter.position.x, y: teleporter.position.y, z: teleporter.position.z});
       if (event) event.stopPropagation();
     }
 }
@@ -159,25 +158,8 @@ const getIntersectedObj = () => {
   return intersects[0];
 };
 
-let tween = null;
-const moveDollyTo = (dolly, pos, time) => {
-  const tweenPos = {x: dolly.position.x, y: dolly.position.y, z: dolly.position.z};
-  if (tween) {
-    tween.stop();
-  }
-  tween = new TWEEN.Tween(tweenPos).to(pos, time);
-
-
-  tween.onUpdate(() => {
-    dolly.position.set(tweenPos.x, tweenPos.y, tweenPos.z);
-  });
-
-  tween.onComplete(function() {
-    tween = null;
-  });
-
-  tween.easing(TWEEN.Easing.Quadratic.In);
-  tween.start();
+const moveDollyTo = (dolly, pos) => {
+  dolly.position.set(pos.x, pos.y, pos.z);
 }
 
 const render = () => {
@@ -189,10 +171,6 @@ const render = () => {
 
   if (keyboardOn) {
     checkKeyboard();
-  }
-
-  if (tween) {
-    TWEEN.update();
   }
 };
 
