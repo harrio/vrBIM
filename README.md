@@ -11,6 +11,8 @@ The app consists of a Node.js server that converts and serves the models and a W
 
 **Online demo coming soon**
 
+[Short demo video](https://www.youtube.com/watch?v=8FQWpi2sOlY)
+
 The demo contains a couple of buildings that can be loaded into the scene before entering VR.
 The user can move around in the scene by aiming the reticle at a surface and teleporting there. The target is
 marked by an orange cone. If a keyboard is available, WASD controls can also be used to move around. (R/F to move up/down).
