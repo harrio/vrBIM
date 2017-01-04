@@ -18,7 +18,7 @@ const addObject = (scene, callback) => {
     geometry.mergeVertices();
     object = new THREE.Mesh(new THREE.BufferGeometry().fromGeometry(geometry), new THREE.MultiMaterial(materials));
     object.rotation.x = -Math.PI/2;
-    object.position.y += 0.1;
+    object.position.y += 0.11;
     scene.add(object);
     object.material.materials.forEach((m) => {
       objMaterials[m.name] = m;
