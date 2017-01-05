@@ -9,7 +9,7 @@ The app consists of a Node.js server that converts and serves the models and a W
 
 ## Demo
 
-[Online demo](http://52.209.102.7/demo/)
+[Online demo](http://vrbim.solitacloud.fi/demo/)
 
 [Short demo video](https://www.youtube.com/watch?v=8FQWpi2sOlY)
 
