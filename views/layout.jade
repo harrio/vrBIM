@@ -8,7 +8,7 @@ html
     meta(name="apple-mobile-web-app-capable" content="yes")
     meta(name="apple-mobile-web-app-status-bar-style" content="black-translucent")
     link(href='https://fonts.googleapis.com/css?family=Roboto', rel='stylesheet')
-    link(rel='stylesheet', href='/stylesheets/style.css')
+    link(rel='stylesheet', href='stylesheets/style.css')
 
     script(src="three/build/three.min.js")
     script(src="javascripts/threex.keyboardstate.js")
@@ -18,11 +18,10 @@ html
     script(src="javascripts/glTFLoaderUtils.js")
     script(src="javascripts/glTFAnimation.js")
     script(src="javascripts/glTFShaders.js")
-    script(src="javascripts/WebVR.js")
-    script(src="javascripts/VREffect.js")
-    script(src="javascripts/VRControls.js")
+    script(src="three/examples/js/effects/VREffect.js")
+    script(src="three/examples/js/controls/VRControls.js")
+    script(src="webvr-polyfill/build/webvr-polyfill.js")
     script(src="webvr-boilerplate/build/webvr-manager.js")
-    script(src="webvr-boilerplate/node_modules/webvr-polyfill/build/webvr-polyfill.js")
     script(src="javascripts/main.js")
 
     script(type="x-shader/x-vertex" id="vertexShader").
