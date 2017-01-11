@@ -58,7 +58,9 @@ const init = () => {
 
   // Set side menu height
   const sideMenu = document.querySelectorAll('.side-menu')[0];
-  sideMenu.style.height = window.innerHeight-20 + 'px';
+  if (sideMenu) {
+    sideMenu.style.height = window.innerHeight-20 + 'px';
+  }
   initResize();
   setClickListeners();
   requestAnimationFrame(animate);
@@ -286,6 +288,9 @@ const hideDom = (domSelector) => {
 
 const toggleSideMenu = () => {
   const sideMenu = document.querySelectorAll('.side-menu')[0];
+  if (!sideMenu) {
+    return;
+  }
   const sideContent = document.querySelectorAll('.side-menu-content')[0];
   if(isDomElementHidden(sideContent)) {
     hideDom('.side-menu-button');

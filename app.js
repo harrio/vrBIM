@@ -51,6 +51,10 @@ app.get('/', (req, res, next) => {
   });
 });
 
+app.get('/carmel', (req, res, next) => {
+  res.render("carmel.jade");
+});
+
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
   var err = new Error('Not Found');
