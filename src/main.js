@@ -1,5 +1,6 @@
 /* global THREE */
 /* global THREEx */
+/* global GamepadState */
 
 import * as BimManager from './BimManager';
 import * as Navigator from './Navigator';
@@ -8,7 +9,6 @@ import * as Menu from './Menu';
 import * as WorldManager from './WorldManager';
 import * as Cleaner from './Cleaner';
 
-
 const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 10000);
 const controls = new THREE.VRControls(camera);
 const dolly = new THREE.Group();
@@ -16,7 +16,7 @@ const raycaster  = new THREE.Raycaster();
 const scene = new THREE.Scene();
 const keyboard = new THREEx.KeyboardState();
 
-
+const gamepadState = new GamepadState();
 
 let teleportOn = true;
 let onMenu = false;
@@ -69,6 +69,21 @@ const init = () => {
     event.preventDefault();
     return false;
   }, false);
+
+  gamepadState.ongearvrinput = function (gearVRAction) {
+    if (gearVRAction == 'tap') {
+      const menu = getIntersectedMenu();
+      if (menu) {
+        if (menu.name == 'MenuToggle') {
+          toggleMenu();
+        } else {
+          BimManager.toggleMaterial(menu);
+        }
+      } else if (teleportOn && !onMenu && teleporter && VRManager.mode == 3) {
+        moveDollyTo(dolly, {x: teleporter.position.x, y: teleporter.position.y, z: teleporter.position.z}, 500);
+      }
+    }
+  };
 
 
 };
@@ -166,6 +181,7 @@ const moveDollyTo = (dolly, pos) => {
 
 const render = () => {
   Menu.updateMenuPosition(camera, toggleParent);
+  gamepadState.update();
 
   if (teleportOn) {
     checkTeleport();
