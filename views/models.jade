@@ -1,28 +1,7 @@
 extends layout
 
 block content
-  section.side-menu
-    div.side-menu-button(onClick="toggleSideMenu()")
-      span
-    div.side-menu-content
-      header
-        h1 vrBIM
-        button.upload-btn.button(onClick="showDom('.upload-form')") Upload new model
-
-        div.upload-form(style='display:none;')
-          form(method="post",enctype="multipart/form-data",action="/upload")
-            p
-              input(type="file",name="upl")
-            p
-              input(type="submit",onClick="hideDom('.upload-form')")
-
-      div.loaded-models
-        for item in models
-          div.model-item
-            p
-              span= item
-              span.button(onclick="loadModel('#{item}')") Load and view
-
+  
   section.content-main
     div(id="viewport")
       canvas(id="viewportCanvas")

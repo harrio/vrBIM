@@ -1,7 +1,11 @@
 /* global THREE */
+/* global dat */
+
+import request from 'superagent';
 
 import * as Text from './Text';
 import * as Cleaner from './Cleaner';
+import * as BimManager from './BimManager';
 
 const yaxis = new THREE.Vector3(0, 1, 0);
 const zaxis = new THREE.Vector3(0, 0, 1);
@@ -10,21 +14,35 @@ const radius = 1;
 const mpi = Math.PI / 180;
 const startAngle = 135 * mpi;
 
-let menuParent, textParent, menuToggle, toggleParent;
+let paletteParent, guiToggle, textParent, paletteToggle, toggleParent, gui, gazeInput;
 
-const createMenuToggle = (dolly) => {
+const createPaletteToggle = (dolly) => {
   toggleParent = new THREE.Object3D();
-  const geometry = new THREE.CylinderGeometry(0, 0.05, 0.05, 8);
+  const geometry = new THREE.PlaneGeometry(0.05, 0.05);
   const material = new THREE.MeshLambertMaterial({color: 0xff0000});
-  menuToggle = new THREE.Mesh(geometry, material);
-  menuToggle.rotation.x = mpi * -45;
-  menuToggle.position.z = -0.5;
-  menuToggle.position.y = 1;
+  paletteToggle = new THREE.Mesh(geometry, material);
+  paletteToggle.rotation.x = mpi * -45;
+  paletteToggle.position.z = -0.3;
+  paletteToggle.position.y = 1;
 
-  menuToggle.name = 'MenuToggle';
+  paletteToggle.name = 'PaletteToggle';
 
-  toggleParent.add(menuToggle);
+  toggleParent.add(paletteToggle);
   dolly.add(toggleParent);
+  return toggleParent;
+}
+
+const createGuiToggle = (dolly) => {
+  const geometry = new THREE.PlaneGeometry(0.05, 0.05);
+  const material = new THREE.MeshLambertMaterial({color: 0x00ff00});
+  guiToggle = new THREE.Mesh(geometry, material);
+  guiToggle.rotation.x = mpi * -45;
+  guiToggle.position.z = -0.35;
+  guiToggle.position.y = 1;
+
+  guiToggle.name = 'GuiToggle';
+
+  toggleParent.add(guiToggle);
   return toggleParent;
 }
 
@@ -36,10 +54,10 @@ const cleanMaterialName = (name) => {
   return name;
 }
 
-const createMenu = (dolly, camera, renderer, materials) => {
-  dolly.remove(menuParent);
+const createPalette = (dolly, camera, renderer, materials) => {
+  dolly.remove(paletteParent);
   dolly.remove(textParent);
-  menuParent = new THREE.Object3D();
+  paletteParent = new THREE.Object3D();
   textParent = new THREE.Object3D();
   let x = 0;
   let y = 0;
@@ -59,7 +77,7 @@ const createMenu = (dolly, camera, renderer, materials) => {
     menuHandle.position.z = Math.cos(angle) * radius; //-1;
 
     menuHandle.lookAt(camera.position);
-    menuParent.add(menuHandle);
+    paletteParent.add(menuHandle);
 
     //textParent.scale.multiplyScalar(0.005);
     let spritey = Text.makeText(cleanMaterialName(material.name), renderer);
@@ -77,21 +95,31 @@ const createMenu = (dolly, camera, renderer, materials) => {
     angle = x < 4 ? angle + 20 * mpi : startAngle;
   }
 
-  dolly.add(menuParent);
+  dolly.add(paletteParent);
   dolly.add(textParent);
-  updateMenuPosition(camera, menuParent);
+  updateMenuPosition(camera, paletteParent);
   updateMenuPosition(camera, textParent);
-  return menuParent;
+  return paletteParent;
 }
 
-const hideMenu = (dolly) => {
-  Cleaner.disposeHierarchy(menuParent);
+const hidePalette = (dolly) => {
+  Cleaner.disposeHierarchy(paletteParent);
   Cleaner.disposeHierarchy(textParent);
-  dolly.remove(menuParent);
+  dolly.remove(paletteParent);
   dolly.remove(textParent);
 }
 
-const updateMenuPosition = (camera, menu) => {
+const togglePalette = (dolly, camera, renderer) => {
+  if (paletteParent) {
+    hidePalette(dolly);
+    paletteParent = null;
+  } else {
+    paletteParent = createPalette(dolly, camera, renderer, BimManager.getMaterials());
+  }
+}
+
+const updateMenuPosition = (camera) => {
+  const menu = toggleParent;
   if (menu) {
     var direction = zaxis.clone();
     // Apply the camera's quaternion onto the unit vector of one of the axes
@@ -111,9 +139,71 @@ const updateMenuPosition = (camera, menu) => {
   }
 };
 
+const getIntersectedMenu = (camera, raycaster) => {
+  raycaster.setFromCamera( { x: 0, y: 0 }, camera );
+  const intersects = paletteParent ? raycaster.intersectObjects(paletteParent.children.concat(toggleParent.children, gui.children), true) :
+    raycaster.intersectObjects(toggleParent.children.concat(gui.children), true);
+  if (intersects.length < 1) {
+    return null;
+  }
+  return intersects[0].object;
+};
+
+const createGui = (camera, renderer, scene) => {
+  const Settings = function() {
+    this.model = 'None';
+    this.environment = 'None';
+  };
+  const settings = new Settings();
+  dat.GUIVR.enableMouse(camera, renderer);
+  gui = dat.GUIVR.create('Settings');
+  gui.name = 'dat.gui';
+
+  request.get('/list-models')
+    .then((res, err) => {
+      gui.add(settings, 'model', res.body.models.reduce((map, obj) => {
+        map[obj.substring(0, 20)] = obj;
+        return map;
+      }, {})).onChange(val => {
+        BimManager.loadModelToScene(val, scene, () => {
+          //paletteParent = Menu.createMenu(dolly, BimManager.getMaterials());
+        });
+      });
+
+      for (var i in gui.__controllers) {
+        gui.__controllers[i].updateDisplay();
+      }
+    });
+
+  gui.add(settings, 'environment', { Senaatintori: 'senaatintori.js', Sorsapuisto: 'sorsapuisto.js'})
+    .onChange(val => BimManager.loadEnvironment(val, scene));
+
+  gui.position.set(0, 2, -1);
+  scene.add(gui);
+  gui.visible = true;
+
+  gazeInput = dat.GUIVR.addInputObject(camera);
+  scene.add(gazeInput.cursor);
+};
+
+const toggleGui = (scene) => {
+  if (gui.visible) {
+    scene.remove(gui);
+    gui.visible = false;
+  } else {
+    scene.add(gui);
+    gui.visible = true;
+  }
+}
+
 export {
-  createMenuToggle,
-  createMenu,
-  hideMenu,
-  updateMenuPosition
+  createPaletteToggle,
+  createGuiToggle,
+  createPalette,
+  hidePalette,
+  togglePalette,
+  updateMenuPosition,
+  getIntersectedMenu,
+  createGui,
+  toggleGui
 }

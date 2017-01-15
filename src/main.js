@@ -2,6 +2,9 @@
 /* global THREEx */
 /* global GamepadState */
 
+
+import request from 'superagent';
+
 import * as BimManager from './BimManager';
 import * as Navigator from './Navigator';
 import * as Teleporter from './Teleporter';
@@ -23,7 +26,7 @@ let onMenu = false;
 let keyboardOn = true;
 let renderer, canvas, effect;
 
-let crosshair, VRManager, menuParent, toggleParent, teleporter, ground;
+let crosshair, VRManager, teleporter, ground;
 
 const init = () => {
   camera.position.set(0, 5, 10);
@@ -52,15 +55,12 @@ const init = () => {
   effect.setSize(window.innerWidth, window.innerHeight);
   VRManager = new WebVRManager(renderer, effect);
 
-  BimManager.loadEnvironment('senaatintori.js', scene);
+  //BimManager.loadEnvironment('senaatintori.js', scene);
 
-  toggleParent = Menu.createMenuToggle(dolly);
+  Menu.createPaletteToggle(dolly);
+  Menu.createGuiToggle(dolly);
+  Menu.createGui(camera, renderer, scene);
 
-  // Set side menu height
-  const sideMenu = document.querySelectorAll('.side-menu')[0];
-  if (sideMenu) {
-    sideMenu.style.height = window.innerHeight-20 + 'px';
-  }
   initResize();
   setClickListeners();
   requestAnimationFrame(animate);
@@ -72,20 +72,25 @@ const init = () => {
 
   gamepadState.ongearvrinput = function (gearVRAction) {
     if (gearVRAction == 'tap') {
-      const menu = getIntersectedMenu();
+      const menu = Menu.getIntersectedMenu(camera, raycaster);
       if (menu) {
-        if (menu.name == 'MenuToggle') {
-          toggleMenu();
-        } else {
+        if (menu.name == 'PaletteToggle') {
+          togglePalette();
+        } else if (menu.name == 'GuiToggle'){
+          Menu.toggleGui(scene);
+        } else if (menu.name != 'dat.gui'){
           BimManager.toggleMaterial(menu);
         }
       } else if (teleportOn && !onMenu && teleporter && VRManager.mode == 3) {
         moveDollyTo(dolly, {x: teleporter.position.x, y: teleporter.position.y, z: teleporter.position.z}, 500);
       }
     }
+    if (gearVRAction == 'tapdown') {
+      gazeInput.pressed(true);
+    } else if (gearVRAction == 'tapup') {
+      gazeInput.pressed(false);
+    }
   };
-
-
 };
 
 const initResize = () => {
@@ -122,11 +127,13 @@ const setClickListeners = () => {
 }
 
 const clickHandler = (event) => {
-  const menu = getIntersectedMenu();
+  const menu = Menu.getIntersectedMenu(camera, raycaster);
   if (menu) {
-    if (menu.name == 'MenuToggle') {
+    if (menu.name == 'PaletteToggle') {
       toggleMenu();
-    } else {
+    } else if (menu.name == 'GuiToggle'){
+      Menu.toggleGui(scene);
+    } else if (menu.name != 'dat.gui') {
       BimManager.toggleMaterial(menu);
     }
   } else if (teleportOn && !onMenu && teleporter && (VRManager.mode == 3 || (event && event.button == 2))) {
@@ -135,14 +142,8 @@ const clickHandler = (event) => {
   }
 }
 
-
 const toggleMenu = () => {
-  if (menuParent) {
-    Menu.hideMenu(dolly);
-    menuParent = null;
-  } else {
-    menuParent = Menu.createMenu(dolly, camera, renderer, BimManager.getMaterials());
-  }
+  Menu.togglePalette(dolly, camera, renderer);
   toggleNavigation();
 }
 
@@ -155,15 +156,6 @@ const animate = (timestamp) => {
   render();
 
   VRManager.render(scene, camera, timestamp, function() {});
-};
-
-const getIntersectedMenu = () => {
-  raycaster.setFromCamera( { x: 0, y: 0 }, camera );
-  const intersects = menuParent ? raycaster.intersectObjects(menuParent.children.concat(toggleParent.children)) : raycaster.intersectObjects(toggleParent.children);
-  if (intersects.length < 1) {
-    return null;
-  }
-  return intersects[0].object;
 };
 
 const getIntersectedObj = () => {
@@ -180,7 +172,7 @@ const moveDollyTo = (dolly, pos) => {
 }
 
 const render = () => {
-  Menu.updateMenuPosition(camera, toggleParent);
+  Menu.updateMenuPosition(camera);
   gamepadState.update();
 
   if (teleportOn) {
@@ -284,50 +276,10 @@ const loadModel = (name) => {
   BimManager.loadModelToScene(name, scene, () => {
     //menuParent = Menu.createMenu(dolly, BimManager.getMaterials());
   });
-  toggleSideMenu();
 };
-
-const isDomElementHidden = (el) => {
-  const style = window.getComputedStyle(el);
-  return (style.display === 'none')
-}
-
-const showDom = (domSelector) => {
-  const el = document.querySelectorAll(domSelector)[0];
-  el.style.display = 'block';
-};
-
-const hideDom = (domSelector) => {
-  const el = document.querySelectorAll(domSelector)[0];
-  el.style.display = 'none';
-};
-
-const toggleSideMenu = () => {
-  const sideMenu = document.querySelectorAll('.side-menu')[0];
-  if (!sideMenu) {
-    return;
-  }
-  const sideContent = document.querySelectorAll('.side-menu-content')[0];
-  if(isDomElementHidden(sideContent)) {
-    hideDom('.side-menu-button');
-    sideMenu.style.width = '25%';
-    sideMenu.style.height = window.innerHeight-20 +'px';
-    setTimeout(()=>{
-      showDom('.side-menu-content');
-    }, 500);
-  } else {
-    hideDom('.side-menu-content');
-    showDom('.side-menu-button');
-    sideMenu.style.width = '36px';
-    sideMenu.style.height = '29px';
-  }
-}
 
 window.onload = function() {
    init();
 };
 
 window.loadModel = loadModel;
-window.showDom = showDom;
-window.hideDom = hideDom;
-window.toggleSideMenu = toggleSideMenu;
