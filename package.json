@@ -23,7 +23,8 @@
     "three-bmfont-text": "^2.1.0",
     "three-obj-loader": "^1.0.2",
     "watchr": "^3.0.1",
-    "webvr-boilerplate": "^0.4.9"
+    "webvr-boilerplate": "^0.4.9",
+    "superagent": "^3.3.2"
   },
   "devDependencies": {
     "babel": "^6.5.2",
