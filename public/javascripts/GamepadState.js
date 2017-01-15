@@ -60,6 +60,15 @@
     if (!this.oldPressedButtons[0] && this.gearVRButtons[0]) {
       this._onGearVRInput("tap");
     }
+
+    if (!this.oldPressedButtons[0] && this.gearVRButtons[0]) {
+      this._onGearVRInput("tapdown");
+    }
+
+    if (this.oldPressedButtons[0] && !this.gearVRButtons[0]) {
+      this._onGearVRInput("tapup");
+    }
+
     if (!this.oldGearVRAxes[0] && this.gearVRAxes[0] < 0) {
       this._onGearVRInput("right");
     }
