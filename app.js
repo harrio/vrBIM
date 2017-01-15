@@ -37,12 +37,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'node_modules')));
 app.use(express.static(path.join(__dirname, 'models')));
 
-app.post('/upload', multer({ dest: './ifc/'}).single('upl'), (req,res) => {
- 	console.log(req.file); //form files
-  nameMap[req.file.filename] = req.file.originalname;
-  res.status(204).end();
-});
-
 app.get('/', (req, res, next) => {
   fs.readdir('./models', (err, items) => {
     console.log(items);
