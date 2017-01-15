@@ -19,6 +19,7 @@ const addObject = (scene, callback) => {
     object = new THREE.Mesh(new THREE.BufferGeometry().fromGeometry(geometry), new THREE.MultiMaterial(materials));
     object.rotation.x = -Math.PI/2;
     object.position.y += 0.11;
+    object.position.z -= 30;
     scene.add(object);
     object.material.materials.forEach((m) => {
       objMaterials[m.name] = m;
