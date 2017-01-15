@@ -44,12 +44,20 @@ app.post('/upload', multer({ dest: './ifc/'}).single('upl'), (req,res) => {
 });
 
 app.get('/', (req, res, next) => {
-  fs.readdir("./models", (err, items) => {
+  fs.readdir('./models', (err, items) => {
     console.log(items);
-    var models = items.filter((item) => { return item.indexOf(".js") > 0});
-    res.render("models.jade", {"models": models});
+    var models = items.filter((item) => { return item.indexOf('.js') > 0});
+    res.render('models.jade', {'models': models});
   });
 });
+
+app.get('/list-models', (req, res, next) => {
+  fs.readdir('./models', (err, items) => {
+    console.log(items);
+    var models = items.filter((item) => { return item.indexOf('.js') > 0});
+    res.json({'models': models});
+  });
+})
 
 app.get('/carmel', (req, res, next) => {
   res.render("carmel.jade");
