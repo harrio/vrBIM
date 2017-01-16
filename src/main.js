@@ -59,7 +59,7 @@ const init = () => {
 
   Menu.createPaletteToggle(dolly);
   Menu.createGuiToggle(dolly);
-  Menu.createGui(camera, renderer, scene);
+  Menu.createGui(camera, renderer, scene, dolly);
 
   initResize();
   setClickListeners();
@@ -77,7 +77,7 @@ const init = () => {
         if (menu.name == 'PaletteToggle') {
           togglePalette();
         } else if (menu.name == 'GuiToggle'){
-          Menu.toggleGui(scene);
+          Menu.toggleGui(dolly);
         } else if (menu.name != 'dat.gui'){
           BimManager.toggleMaterial(menu);
         }
@@ -132,7 +132,7 @@ const clickHandler = (event) => {
     if (menu.name == 'PaletteToggle') {
       toggleMenu();
     } else if (menu.name == 'GuiToggle'){
-      Menu.toggleGui(scene);
+      Menu.toggleGui(dolly);
     } else if (menu.name != 'dat.gui') {
       BimManager.toggleMaterial(menu);
     }

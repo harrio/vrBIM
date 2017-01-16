@@ -149,7 +149,7 @@ const getIntersectedMenu = (camera, raycaster) => {
   return intersects[0].object;
 };
 
-const createGui = (camera, renderer, scene) => {
+const createGui = (camera, renderer, scene, dolly) => {
   const Settings = function() {
     this.model = 'None';
     this.environment = 'None';
@@ -179,19 +179,20 @@ const createGui = (camera, renderer, scene) => {
     .onChange(val => BimManager.loadEnvironment(val, scene));
 
   gui.position.set(0, 2, -1);
-  scene.add(gui);
+  dolly.add(gui);
   gui.visible = true;
 
   gazeInput = dat.GUIVR.addInputObject(camera);
   scene.add(gazeInput.cursor);
 };
 
-const toggleGui = (scene) => {
+const toggleGui = (dolly) => {
   if (gui.visible) {
-    scene.remove(gui);
+    dolly.remove(gui);
     gui.visible = false;
   } else {
-    scene.add(gui);
+    gui.position.set(0, 2, -1);
+    dolly.add(gui);
     gui.visible = true;
   }
 }
