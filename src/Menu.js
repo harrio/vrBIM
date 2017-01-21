@@ -69,7 +69,7 @@ const createPalette = (dolly, camera, renderer, materials) => {
     const geometry = new THREE.PlaneGeometry(0.1, 0.1);
 
     const menuHandle = new THREE.Mesh(geometry, material);
-    menuHandle.name = key;
+    menuHandle.name = 'Palette';
     //menuHandle.rotation.x = Math.PI / 180 * -20;
 
     menuHandle.position.x = Math.sin(angle) * radius; //0.35 * x - 0.5;
@@ -197,6 +197,14 @@ const toggleGui = (dolly) => {
   }
 }
 
+const gazeDown = () => {
+  gazeInput.pressed(true);
+}
+
+const gazeUp = () => {
+  gazeInput.pressed(false);
+}
+
 export {
   createPaletteToggle,
   createGuiToggle,
@@ -206,5 +214,7 @@ export {
   updateMenuPosition,
   getIntersectedMenu,
   createGui,
-  toggleGui
+  toggleGui,
+  gazeDown,
+  gazeUp
 }

@@ -78,7 +78,7 @@ const init = () => {
           togglePalette();
         } else if (menu.name == 'GuiToggle'){
           Menu.toggleGui(dolly);
-        } else if (menu.name != 'dat.gui'){
+        } else if (menu.name == 'Palette'){
           BimManager.toggleMaterial(menu);
         }
       } else if (teleportOn && !onMenu && teleporter && VRManager.mode == 3) {
@@ -86,9 +86,9 @@ const init = () => {
       }
     }
     if (gearVRAction == 'tapdown') {
-      gazeInput.pressed(true);
+      Menu.gazeDown();
     } else if (gearVRAction == 'tapup') {
-      gazeInput.pressed(false);
+      Menu.gazeUp();
     }
   };
 };
@@ -130,10 +130,10 @@ const clickHandler = (event) => {
   const menu = Menu.getIntersectedMenu(camera, raycaster);
   if (menu) {
     if (menu.name == 'PaletteToggle') {
-      toggleMenu();
+      togglePalette();
     } else if (menu.name == 'GuiToggle'){
       Menu.toggleGui(dolly);
-    } else if (menu.name != 'dat.gui') {
+    } else if (menu.name == 'Palette') {
       BimManager.toggleMaterial(menu);
     }
   } else if (teleportOn && !onMenu && teleporter && (VRManager.mode == 3 || (event && event.button == 2))) {
@@ -142,7 +142,7 @@ const clickHandler = (event) => {
   }
 }
 
-const toggleMenu = () => {
+const togglePalette = () => {
   Menu.togglePalette(dolly, camera, renderer);
   toggleNavigation();
 }
