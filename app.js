@@ -41,7 +41,7 @@ app.get('/', (req, res, next) => {
   fs.readdir('./models', (err, items) => {
     console.log(items);
     var models = items.filter((item) => { return item.indexOf('.js') > 0});
-    res.render('models.jade', {'models': models});
+    res.render('models.jade', {'mode': req.query.start_mode});
   });
 });
 

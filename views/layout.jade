@@ -10,6 +10,14 @@ html
     link(href='https://fonts.googleapis.com/css?family=Roboto', rel='stylesheet')
     link(rel='stylesheet', href='stylesheets/style.css')
 
+    if mode == "3"
+      script.
+        WebVRConfig = {
+          DEFER_INITIALIZATION: true,
+          FORCE_ENABLE_VR: true, // Default: false.
+          //BUFFER_SCALE: 0.5, // default: 1.0
+        };
+
     script(src="three/build/three.min.js")
     script(src="javascripts/threex.keyboardstate.js")
     script(src="javascripts/TrackballControls.js")
