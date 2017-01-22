@@ -32,7 +32,7 @@ const createPaletteToggle = (dolly) => {
   return toggleParent;
 }
 
-const createGuiToggle = (dolly) => {
+const createGuiToggle = () => {
   const geometry = new THREE.PlaneGeometry(0.05, 0.05);
   const material = new THREE.MeshLambertMaterial({color: 0x00ff00});
   guiToggle = new THREE.Mesh(geometry, material);
@@ -161,6 +161,10 @@ const createGui = (camera, renderer, scene, dolly) => {
 
   request.get('/list-models')
     .then((res, err) => {
+      if (err) {
+        return;
+      }
+
       gui.add(settings, 'model', res.body.models.reduce((map, obj) => {
         map[obj.substring(0, 20)] = obj;
         return map;

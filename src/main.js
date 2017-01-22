@@ -1,5 +1,4 @@
 /* global THREE */
-/* global THREEx */
 /* global GamepadState */
 
 
@@ -11,13 +10,15 @@ import * as Teleporter from './Teleporter';
 import * as Menu from './Menu';
 import * as WorldManager from './WorldManager';
 import * as Cleaner from './Cleaner';
+import * as Keyboard from './Keyboard';
 
 const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 10000);
 const controls = new THREE.VRControls(camera);
 const dolly = new THREE.Group();
 const raycaster  = new THREE.Raycaster();
 const scene = new THREE.Scene();
-const keyboard = new THREEx.KeyboardState();
+
+const cwd = new THREE.Vector3(0,0,0);
 
 const gamepadState = new GamepadState();
 
@@ -56,7 +57,7 @@ const init = () => {
   VRManager = new WebVRManager(renderer, effect);
 
   Menu.createPaletteToggle(dolly);
-  Menu.createGuiToggle(dolly);
+  Menu.createGuiToggle();
   Menu.createGui(camera, renderer, scene, dolly);
 
   initResize();
@@ -83,10 +84,30 @@ const init = () => {
         moveDollyTo(dolly, {x: teleporter.position.x, y: teleporter.position.y, z: teleporter.position.z}, 500);
       }
     }
-    if (gearVRAction == 'tapdown') {
-      Menu.gazeDown();
-    } else if (gearVRAction == 'tapup') {
-      Menu.gazeUp();
+
+    switch (gearVRAction) {
+      case 'tapdown':
+        Menu.gazeDown();
+        break;
+      case 'tapup':
+        Menu.gazeUp();
+        break;
+      case 'up':
+        moveDollyTo(dolly, {x: dolly.position.x, y: dolly.position.y + 0.5, z: dolly.position.z});
+        break;
+      case 'down':
+        moveDollyTo(dolly, {x: dolly.position.x, y: dolly.position.y - 0.5, z: dolly.position.z});
+        break;
+      case 'left':
+        camera.getWorldDirection(cwd);
+        dolly.position.x += cwd.x * -0.5;
+        dolly.position.z += cwd.z * -0.5;
+        break;
+      case 'right':
+        camera.getWorldDirection(cwd);
+        dolly.position.x += cwd.x * 0.5;
+        dolly.position.z += cwd.z * 0.5;
+        break;
     }
   };
 };
@@ -176,76 +197,9 @@ const render = () => {
   }
 
   if (keyboardOn) {
-    checkKeyboard();
+    Keyboard.checkKeyboard(dolly, camera);
   }
 };
-
-
-const lbounds = new THREE.Vector3(-1000, 0.5, -1000);
-const ubounds = new THREE.Vector3(1000, 200, 1000);
-const hspeed = 100;
-const vspeed = 100;
-const vstep = 0.3;
-const hstep = 0.3;
-const rot = 3.14/180 * 5;
-const cwd = new THREE.Vector3(0,0,0);
-const yaxis = new THREE.Vector3(0,1,0);
-
-const checkKeyboard = () => {
-
-  if (keyboard.pressed('W') || keyboard.pressed('up')) {
-    camera.getWorldDirection(cwd);
-
-    dolly.position.x += cwd.x*hstep;
-    dolly.position.z += cwd.z*hstep;
-  }
-
-  if (keyboard.pressed('S') || keyboard.pressed('down')) {
-    camera.getWorldDirection(cwd);
-
-    dolly.position.x += cwd.x* (-hstep);
-    dolly.position.z += cwd.z* (-hstep);
-  }
-
-  if (keyboard.pressed('D')) {
-    camera.getWorldDirection(cwd);
-    cwd.applyAxisAngle(yaxis, Math.PI / 2);
-
-    dolly.position.x += cwd.x* (-hstep);
-    dolly.position.z += cwd.z* (-hstep);
-  }
-
-  if (keyboard.pressed('A')) {
-    camera.getWorldDirection(cwd);
-    cwd.applyAxisAngle(yaxis, Math.PI / 2);
-
-    dolly.position.x += cwd.x* hstep;
-    dolly.position.z += cwd.z* hstep;
-  }
-
-  if (keyboard.pressed('Q') || keyboard.pressed('left')) {
-    dolly.rotateY(rot);
-  }
-
-  if (keyboard.pressed('E') || keyboard.pressed('right')) {
-    dolly.rotateY(-rot);
-  }
-
-  if (keyboard.pressed('R') || keyboard.pressed('.')) {
-    dolly.position.y += vstep;
-
-  }
-  if (keyboard.pressed('F') || keyboard.pressed(',')) {
-    dolly.position.y -= vstep;
-  }
-  if (keyboard.pressed('space')) {
-    toggleMenu();
-  }
-
-  dolly.position.clamp(lbounds, ubounds);
-
-}
-
 
 const toggleNavigation = () => {
   if (teleportOn) {
