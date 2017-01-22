@@ -20,6 +20,8 @@ const addObject = (scene, callback) => {
     object.rotation.x = -Math.PI/2;
     object.position.y += 0.11;
     object.position.z -= 30;
+    object.matrixAutoUpdate = false;
+    object.updateMatrix();
     scene.add(object);
     object.material.materials.forEach((m) => {
       objMaterials[m.name] = m;
@@ -52,6 +54,8 @@ const loadEnvironment = (name, scene) => {
       environment.position.x = 0;
       environment.position.y += 0.1;
       environment.position.z = 0;
+      environment.matrixAutoUpdate = false;
+      environment.updateMatrix();
 
       scene.add(environment);
    });

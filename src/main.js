@@ -55,8 +55,6 @@ const init = () => {
   effect.setSize(window.innerWidth, window.innerHeight);
   VRManager = new WebVRManager(renderer, effect);
 
-  //BimManager.loadEnvironment('senaatintori.js', scene);
-
   Menu.createPaletteToggle(dolly);
   Menu.createGuiToggle(dolly);
   Menu.createGui(camera, renderer, scene, dolly);
@@ -147,11 +145,9 @@ const togglePalette = () => {
   toggleNavigation();
 }
 
-var lastRender = 0;
 const animate = (timestamp) => {
 
   requestAnimationFrame(animate);
-  lastRender = timestamp;
   controls.update();
   render();
 
@@ -274,7 +270,6 @@ const checkTeleport = () => {
 
 const loadModel = (name) => {
   BimManager.loadModelToScene(name, scene, () => {
-    //menuParent = Menu.createMenu(dolly, BimManager.getMaterials());
   });
 };
 

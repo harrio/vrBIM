@@ -166,7 +166,6 @@ const createGui = (camera, renderer, scene, dolly) => {
         return map;
       }, {})).onChange(val => {
         BimManager.loadModelToScene(val, scene, () => {
-          //paletteParent = Menu.createMenu(dolly, BimManager.getMaterials());
         });
       });
 

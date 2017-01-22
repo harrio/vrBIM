@@ -18,6 +18,8 @@ const createGround = () => {
   const material = new THREE.MeshLambertMaterial( {color: 0x2c6000, side: THREE.DoubleSide} );
   const plane = new THREE.Mesh( geometry, material );
   plane.rotation.x = Math.PI / 180 * 90;
+  plane.matrixAutoUpdate = false;
+  plane.updateMatrix();
   return plane;
 }
 
