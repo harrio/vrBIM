@@ -156,7 +156,9 @@ const setClickListeners = () => {
 
 const clickHandler = (event) => {
   const menu = Menu.getIntersectedMenu(camera, raycaster);
-  if (menu) {
+  if (isMoveOn()) {
+    toggleMode();
+  } else if (menu) {
     handleMenu(menu);
   } else if (isTeleportOn() && teleporter && (VRManager.mode == 3 || (event && event.button == 2))) {
     moveDollyTo(dolly, {x: teleporter.position.x, y: teleporter.position.y, z: teleporter.position.z});
