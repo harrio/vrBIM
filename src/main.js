@@ -22,9 +22,8 @@ const cwd = new THREE.Vector3(0,0,0);
 
 const gamepadState = new GamepadState();
 
-let teleportOn = true;
-let moveOn = false;
-let onMenu = false;
+let mode = 'teleport';
+
 let keyboardOn = true;
 let renderer, canvas, effect;
 
@@ -74,9 +73,11 @@ const init = () => {
   gamepadState.ongearvrinput = function (gearVRAction) {
     if (gearVRAction == 'tap') {
       const menu = Menu.getIntersectedMenu(camera, raycaster);
-      if (menu) {
+      if (isMoveOn()) {
+        toggleMode();
+      } else if (menu) {
         handleMenu(menu);
-      } else if (teleportOn && !onMenu && teleporter && VRManager.mode == 3) {
+      } else if (isTeleportOn() && teleporter && VRManager.mode == 3) {
         moveDollyTo(dolly, {x: teleporter.position.x, y: teleporter.position.y, z: teleporter.position.z}, 500);
       }
     }
@@ -95,14 +96,26 @@ const init = () => {
         moveDollyTo(dolly, {x: dolly.position.x, y: dolly.position.y - 0.5, z: dolly.position.z});
         break;
       case 'left':
-        camera.getWorldDirection(cwd);
-        dolly.position.x += cwd.x * -0.5;
-        dolly.position.z += cwd.z * -0.5;
+        if (isMoveOn()) {
+          const object = BimManager.getObject();
+          object.rotation.z += Math.PI / 180 * 30;
+          object.updateMatrix();
+        } else {
+          camera.getWorldDirection(cwd);
+          dolly.position.x += cwd.x * -0.5;
+          dolly.position.z += cwd.z * -0.5;
+        }
         break;
       case 'right':
-        camera.getWorldDirection(cwd);
-        dolly.position.x += cwd.x * 0.5;
-        dolly.position.z += cwd.z * 0.5;
+        if (isMoveOn()) {
+          const object = BimManager.getObject();
+          object.rotation.z -= Math.PI / 180 * 30;
+          object.updateMatrix();
+        } else {
+          camera.getWorldDirection(cwd);
+          dolly.position.x += cwd.x * 0.5;
+          dolly.position.z += cwd.z * 0.5;
+        }
         break;
     }
   };
@@ -145,7 +158,7 @@ const clickHandler = (event) => {
   const menu = Menu.getIntersectedMenu(camera, raycaster);
   if (menu) {
     handleMenu(menu);
-  } else if (teleportOn && !onMenu && teleporter && (VRManager.mode == 3 || (event && event.button == 2))) {
+  } else if (isTeleportOn() && teleporter && (VRManager.mode == 3 || (event && event.button == 2))) {
     moveDollyTo(dolly, {x: teleporter.position.x, y: teleporter.position.y, z: teleporter.position.z});
     if (event) event.stopPropagation();
   }
@@ -154,7 +167,7 @@ const clickHandler = (event) => {
 const handleMenu = (menu) => {
   switch (menu.name) {
     case 'PaletteToggle':
-      togglePalette();
+      Menu.togglePalette(dolly, camera, renderer);
       break;
     case 'GuiToggle':
       Menu.toggleGui(dolly);
@@ -163,19 +176,9 @@ const handleMenu = (menu) => {
       BimManager.toggleMaterial(menu);
       break;
     case 'MoveToggle':
-      toggleMove();
+      toggleMode();
       break;
   }
-}
-
-const togglePalette = () => {
-  Menu.togglePalette(dolly, camera, renderer);
-  toggleNavigation();
-}
-
-const toggleMove = () => {
-  toggleNavigation();
-  moveOn = !moveOn;
 }
 
 const animate = (timestamp) => {
@@ -204,7 +207,7 @@ const render = () => {
   Menu.updateMenuPosition(camera);
   gamepadState.update();
 
-  if (teleportOn) {
+  if (isTeleportOn()) {
     checkTeleport();
   }
 
@@ -215,13 +218,15 @@ const render = () => {
   }
 };
 
-const toggleNavigation = () => {
-  if (teleportOn) {
+const toggleMode = () => {
+  if (isTeleportOn()) {
     Cleaner.disposeHierarchy(teleporter);
     scene.remove(teleporter);
     teleporter = null;
+    mode = 'move';
+  } else {
+    mode = 'teleport';
   }
-  teleportOn = !teleportOn;
 }
 
 const checkTeleport = () => {
@@ -238,13 +243,21 @@ const checkTeleport = () => {
 
 const checkMove = () => {
   const object = BimManager.getObject();
-  if (moveOn && object) {
+  if (isMoveOn() && object) {
     const obj = getIntersectedObj(true);
     if (obj && obj.point) {
       object.position.set(obj.point.x, obj.point.y + 0.1, obj.point.z);
       object.updateMatrix();
     }
   }
+}
+
+const isTeleportOn = () => {
+  return mode == 'teleport';
+}
+
+const isMoveOn = () => {
+  return mode == 'move';
 }
 
 const loadModel = (name) => {
