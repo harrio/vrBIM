@@ -224,8 +224,10 @@ const toggleMode = () => {
     scene.remove(teleporter);
     teleporter = null;
     mode = 'move';
+    Menu.toggleMove(true);
   } else {
     mode = 'teleport';
+    Menu.toggleMove(false);
   }
 }
 
