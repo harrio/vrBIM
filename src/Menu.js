@@ -218,7 +218,7 @@ const createGui = (camera, renderer, scene, dolly) => {
       }
     });
 
-  gui.add(settings, 'environment', { Senaatintori: 'senaatintori.js', Sorsapuisto: 'sorsapuisto.js'})
+  gui.add(settings, 'environment', { London: 'london.js', Amsterdam: 'amsterdam.js', Helsinki: 'senaatintori.js', Tampere: 'sorsapuisto.js'})
     .onChange(val => BimManager.loadEnvironment(val, scene));
 
   gui.position.set(0, 2, -1);
