@@ -14,36 +14,56 @@ const radius = 1;
 const mpi = Math.PI / 180;
 const startAngle = 135 * mpi;
 
-let paletteParent, guiToggle, textParent, paletteToggle, toggleParent, gui, gazeInput;
+let paletteParent, guiToggle, textParent, paletteToggle, toggleParent, gui, gazeInput, moveToggle;
+
+const toggleGeom = new THREE.PlaneGeometry(0.05, 0.05);
+const loader = new THREE.TextureLoader();
 
 const createPaletteToggle = (dolly) => {
   toggleParent = new THREE.Object3D();
-  const geometry = new THREE.PlaneGeometry(0.05, 0.05);
-  const material = new THREE.MeshLambertMaterial({color: 0xff0000});
-  paletteToggle = new THREE.Mesh(geometry, material);
-  paletteToggle.rotation.x = mpi * -45;
-  paletteToggle.position.z = -0.3;
-  paletteToggle.position.y = 1;
+  loader.load('palette.png', (texture) => {
+    const material = new THREE.MeshLambertMaterial({map: texture, transparent: true});
 
-  paletteToggle.name = 'PaletteToggle';
+    paletteToggle = new THREE.Mesh(toggleGeom, material);
+    paletteToggle.rotation.x = mpi * -45;
+    paletteToggle.position.z = -0.3;
+    paletteToggle.position.y = 1;
 
-  toggleParent.add(paletteToggle);
-  dolly.add(toggleParent);
-  return toggleParent;
+    paletteToggle.name = 'PaletteToggle';
+
+    toggleParent.add(paletteToggle);
+    dolly.add(toggleParent);
+  });
 }
 
 const createGuiToggle = () => {
-  const geometry = new THREE.PlaneGeometry(0.05, 0.05);
-  const material = new THREE.MeshLambertMaterial({color: 0x00ff00});
-  guiToggle = new THREE.Mesh(geometry, material);
-  guiToggle.rotation.x = mpi * -45;
-  guiToggle.position.z = -0.35;
-  guiToggle.position.y = 1;
+  loader.load('settings.png', (texture) => {
+    const material = new THREE.MeshBasicMaterial({color: 0xff0000, map: texture, transparent: true, overdraw: true, opacity: 0.9});
 
-  guiToggle.name = 'GuiToggle';
+    guiToggle = new THREE.Mesh(toggleGeom, material);
+    guiToggle.rotation.x = mpi * -45;
+    guiToggle.position.z = -0.35;
+    guiToggle.position.y = 1.02;
 
-  toggleParent.add(guiToggle);
-  return toggleParent;
+    guiToggle.name = 'GuiToggle';
+
+    toggleParent.add(guiToggle);
+  });
+}
+
+const createMoveToggle = () => {
+  loader.load('move.png', (texture) => {
+    const material = new THREE.MeshLambertMaterial({map: texture, transparent: true});
+
+    moveToggle = new THREE.Mesh(toggleGeom, material);
+    moveToggle.rotation.x = mpi * -45;
+    moveToggle.position.z = -0.4;
+    moveToggle.position.y = 1.04;
+
+    moveToggle.name = 'MoveToggle';
+
+    toggleParent.add(moveToggle);
+  });
 }
 
 const cleanMaterialName = (name) => {
@@ -211,6 +231,7 @@ const gazeUp = () => {
 export {
   createPaletteToggle,
   createGuiToggle,
+  createMoveToggle,
   createPalette,
   hidePalette,
   togglePalette,

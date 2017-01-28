@@ -23,6 +23,7 @@ const cwd = new THREE.Vector3(0,0,0);
 const gamepadState = new GamepadState();
 
 let teleportOn = true;
+let moveOn = false;
 let onMenu = false;
 let keyboardOn = true;
 let renderer, canvas, effect;
@@ -58,6 +59,7 @@ const init = () => {
 
   Menu.createPaletteToggle(dolly);
   Menu.createGuiToggle();
+  Menu.createMoveToggle();
   Menu.createGui(camera, renderer, scene, dolly);
 
   initResize();
@@ -73,13 +75,7 @@ const init = () => {
     if (gearVRAction == 'tap') {
       const menu = Menu.getIntersectedMenu(camera, raycaster);
       if (menu) {
-        if (menu.name == 'PaletteToggle') {
-          togglePalette();
-        } else if (menu.name == 'GuiToggle'){
-          Menu.toggleGui(dolly);
-        } else if (menu.name == 'Palette'){
-          BimManager.toggleMaterial(menu);
-        }
+        handleMenu(menu);
       } else if (teleportOn && !onMenu && teleporter && VRManager.mode == 3) {
         moveDollyTo(dolly, {x: teleporter.position.x, y: teleporter.position.y, z: teleporter.position.z}, 500);
       }
@@ -148,22 +144,38 @@ const setClickListeners = () => {
 const clickHandler = (event) => {
   const menu = Menu.getIntersectedMenu(camera, raycaster);
   if (menu) {
-    if (menu.name == 'PaletteToggle') {
-      togglePalette();
-    } else if (menu.name == 'GuiToggle'){
-      Menu.toggleGui(dolly);
-    } else if (menu.name == 'Palette') {
-      BimManager.toggleMaterial(menu);
-    }
+    handleMenu(menu);
   } else if (teleportOn && !onMenu && teleporter && (VRManager.mode == 3 || (event && event.button == 2))) {
     moveDollyTo(dolly, {x: teleporter.position.x, y: teleporter.position.y, z: teleporter.position.z});
     if (event) event.stopPropagation();
   }
 }
 
+const handleMenu = (menu) => {
+  switch (menu.name) {
+    case 'PaletteToggle':
+      togglePalette();
+      break;
+    case 'GuiToggle':
+      Menu.toggleGui(dolly);
+      break;
+    case 'Palette':
+      BimManager.toggleMaterial(menu);
+      break;
+    case 'MoveToggle':
+      toggleMove();
+      break;
+  }
+}
+
 const togglePalette = () => {
   Menu.togglePalette(dolly, camera, renderer);
   toggleNavigation();
+}
+
+const toggleMove = () => {
+  toggleNavigation();
+  moveOn = !moveOn;
 }
 
 const animate = (timestamp) => {
@@ -175,9 +187,9 @@ const animate = (timestamp) => {
   VRManager.render(scene, camera, timestamp, function() {});
 };
 
-const getIntersectedObj = () => {
+const getIntersectedObj = (justGround) => {
   raycaster.setFromCamera( { x: 0, y: 0 }, camera );
-  const intersects = raycaster.intersectObjects([ground, BimManager.getObject(), BimManager.getEnvironment()]);
+  const intersects = raycaster.intersectObjects(justGround ? [ground] : [ground, BimManager.getObject(), BimManager.getEnvironment()]);
   if (intersects.length < 1) {
     return null;
   }
@@ -195,6 +207,8 @@ const render = () => {
   if (teleportOn) {
     checkTeleport();
   }
+
+  checkMove();
 
   if (keyboardOn) {
     Keyboard.checkKeyboard(dolly, camera);
@@ -216,9 +230,20 @@ const checkTeleport = () => {
     scene.add(teleporter);
   }
 
-  const obj = getIntersectedObj();
+  const obj = getIntersectedObj(false);
   if (obj && obj.point) {
     teleporter.position.set(obj.point.x, obj.point.y, obj.point.z);
+  }
+}
+
+const checkMove = () => {
+  const object = BimManager.getObject();
+  if (moveOn && object) {
+    const obj = getIntersectedObj(true);
+    if (obj && obj.point) {
+      object.position.set(obj.point.x, obj.point.y + 0.1, obj.point.z);
+      object.updateMatrix();
+    }
   }
 }
 
