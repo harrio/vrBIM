@@ -16,6 +16,8 @@ const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerH
 const controls = new THREE.VRControls(camera);
 const dolly = new THREE.Group();
 const raycaster  = new THREE.Raycaster();
+raycaster.near = 0.5;
+raycaster.far = 100;
 const scene = new THREE.Scene();
 
 const cwd = new THREE.Vector3(0,0,0);
@@ -194,7 +196,7 @@ const animate = (timestamp) => {
 
 const getIntersectedObj = (justGround) => {
   raycaster.setFromCamera( { x: 0, y: 0 }, camera );
-  const intersects = raycaster.intersectObjects(justGround ? [ground] : [ground, BimManager.getObject(), BimManager.getEnvironment()]);
+  const intersects = raycaster.intersectObjects(justGround ? [ground] : [ground, BimManager.getObject()]);
   if (intersects.length < 1) {
     return null;
   }
