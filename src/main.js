@@ -31,6 +31,8 @@ let renderer, canvas, effect;
 
 let crosshair, VRManager, teleporter, ground;
 
+let lastTimestamp = 0;
+
 const init = () => {
   camera.position.set(0, 5, 10);
 
@@ -186,10 +188,9 @@ const handleMenu = (menu) => {
 }
 
 const animate = (timestamp) => {
-
   requestAnimationFrame(animate);
   controls.update();
-  render();
+  render(timestamp);
 
   VRManager.render(scene, camera, timestamp, function() {});
 };
@@ -207,16 +208,17 @@ const moveDollyTo = (dolly, pos) => {
   dolly.position.set(pos.x, pos.y, pos.z);
 }
 
-const render = () => {
+const render = (timestamp) => {
   Menu.updateMenuPosition(camera);
   gamepadState.update();
 
-  if (isTeleportOn()) {
+  const delta = timestamp - lastTimestamp;
+
+  if (delta > 100) {
     checkTeleport();
+    checkMove();
+    lastTimestamp = timestamp;
   }
-
-  checkMove();
-
   if (keyboardOn) {
     Keyboard.checkKeyboard(dolly, camera, renderer);
   }
@@ -236,14 +238,16 @@ const toggleMode = () => {
 }
 
 const checkTeleport = () => {
-  if (!teleporter) {
-    teleporter = Teleporter.createTeleporter();
-    scene.add(teleporter);
-  }
+  if (isTeleportOn()) {
+    if (!teleporter) {
+      teleporter = Teleporter.createTeleporter();
+      scene.add(teleporter);
+    }
 
-  const obj = getIntersectedObj(false);
-  if (obj && obj.point) {
-    teleporter.position.set(obj.point.x, obj.point.y, obj.point.z);
+    const obj = getIntersectedObj(false);
+    if (obj && obj.point) {
+      teleporter.position.set(obj.point.x, obj.point.y, obj.point.z);
+    }
   }
 }
 
