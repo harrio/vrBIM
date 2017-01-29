@@ -35,6 +35,9 @@ const loadModelToScene = (name, scene, callback) => {
   oldOpacities = {}
   Cleaner.disposeHierarchy(object);
   scene.remove(object);
+  if (name == 'None') {
+    return;
+  }
   // load a resource
   loader.load(
       name,
@@ -47,6 +50,10 @@ const loadEnvironment = (name, scene) => {
     Cleaner.disposeHierarchy(environment);
     scene.remove(environment);
   }
+  if (name == 'None') {
+    return;
+  }
+
   loader.load(
     name, (geometry, materials) => {
       geometry.mergeVertices();

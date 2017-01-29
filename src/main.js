@@ -216,7 +216,7 @@ const render = () => {
   checkMove();
 
   if (keyboardOn) {
-    Keyboard.checkKeyboard(dolly, camera);
+    Keyboard.checkKeyboard(dolly, camera, renderer);
   }
 };
 

@@ -15,7 +15,7 @@ const rot = 3.14/180 * 5;
 const cwd = new THREE.Vector3(0,0,0);
 const yaxis = new THREE.Vector3(0,1,0);
 
-const checkKeyboard = (dolly, camera) => {
+const checkKeyboard = (dolly, camera, renderer) => {
 
   if (keyboard.pressed('W') || keyboard.pressed('up')) {
     camera.getWorldDirection(cwd);
@@ -63,7 +63,7 @@ const checkKeyboard = (dolly, camera) => {
     dolly.position.y -= vstep;
   }
   if (keyboard.pressed('space')) {
-    Menu.togglePalette();
+    Menu.togglePalette(dolly, camera, renderer);
   }
 
   dolly.position.clamp(lbounds, ubounds);

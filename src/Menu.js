@@ -18,7 +18,7 @@ let paletteParent, textParent, toggleParent, gui, gazeInput;
 let guiToggle, paletteToggle, moveToggle;
 let guiBack, paletteBack, moveBack;
 
-const toggleGeom = new THREE.PlaneGeometry(0.05, 0.05);
+const toggleGeom = new THREE.PlaneGeometry(0.075, 0.075);
 const loader = new THREE.TextureLoader();
 
 const createPaletteToggle = (dolly) => {
@@ -28,7 +28,7 @@ const createPaletteToggle = (dolly) => {
 
     paletteToggle = new THREE.Mesh(toggleGeom, material);
     paletteToggle.rotation.x = mpi * -45;
-    paletteToggle.position.z = -0.3;
+    paletteToggle.position.z = -1;
     paletteToggle.position.y = 1;
 
     paletteToggle.name = 'PaletteToggle';
@@ -48,8 +48,8 @@ const createGuiToggle = () => {
 
     guiToggle = new THREE.Mesh(toggleGeom, material);
     guiToggle.rotation.x = mpi * -45;
-    guiToggle.position.z = -0.35;
-    guiToggle.position.y = 1.02;
+    guiToggle.position.z = -1.05;
+    guiToggle.position.y = 1.06;
 
     guiToggle.name = 'GuiToggle';
 
@@ -71,8 +71,8 @@ const createMoveToggle = () => {
 
     moveToggle = new THREE.Mesh(toggleGeom, material);
     moveToggle.rotation.x = mpi * -45;
-    moveToggle.position.z = -0.4;
-    moveToggle.position.y = 1.04;
+    moveToggle.position.z = -1.1;
+    moveToggle.position.y = 1.12;
 
     moveToggle.name = 'MoveToggle';
 
@@ -193,6 +193,7 @@ const createGui = (camera, renderer, scene, dolly) => {
   const Settings = function() {
     this.model = 'None';
     this.environment = 'None';
+    this.altitude = 'Ground';
   };
   const settings = new Settings();
   dat.GUIVR.enableMouse(camera, renderer);
@@ -204,8 +205,9 @@ const createGui = (camera, renderer, scene, dolly) => {
       if (err) {
         return;
       }
+      const models = ['None'].concat(res.body.models);
 
-      gui.add(settings, 'model', res.body.models.reduce((map, obj) => {
+      gui.add(settings, 'model', models.reduce((map, obj) => {
         map[obj.substring(0, 20)] = obj;
         return map;
       }, {})).onChange(val => {
@@ -218,8 +220,29 @@ const createGui = (camera, renderer, scene, dolly) => {
       }
     });
 
-  gui.add(settings, 'environment', { London: 'london.js', Amsterdam: 'amsterdam.js', Helsinki: 'senaatintori.js', Tampere: 'sorsapuisto.js'})
+  gui.add(settings, 'environment', { None: 'None', London: 'london.js', Amsterdam: 'amsterdam.js', Helsinki: 'senaatintori.js', Tampere: 'sorsapuisto.js'})
     .onChange(val => BimManager.loadEnvironment(val, scene));
+
+  gui.add(settings, 'altitude', ['Ground', '5m', '10m', '25m', '50m'])
+    .onChange(val => {
+      switch (val) {
+      case 'Ground':
+        dolly.position.y = 0;
+        break;
+      case '5m':
+        dolly.position.y = 5;
+        break;
+      case '10m':
+        dolly.position.y = 10;
+        break;
+      case '25m':
+        dolly.position.y = 25;
+        break;
+      case '50m':
+        dolly.position.y = 50;
+        break;
+    }
+  });
 
   gui.position.set(0, 2, -1);
   dolly.add(gui);
